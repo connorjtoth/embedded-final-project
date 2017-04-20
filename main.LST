@@ -1,0 +1,28 @@
+C51 COMPILER V6.02  MAIN                                                                   04/20/2017 16:52:46 PAGE 1   
+
+
+C51 COMPILER V6.02, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE .\main.c DEBUG OBJECTEXTEND
+
+stmt level    source
+
+   1          #include <reg932.h>
+   2          
+   3          void main(){
+   4   1      
+   5   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =      1    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
