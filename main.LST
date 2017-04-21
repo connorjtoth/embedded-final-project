@@ -1,4 +1,4 @@
-C51 COMPILER V6.02  MAIN                                                                   04/20/2017 16:52:46 PAGE 1   
+C51 COMPILER V6.02  MAIN                                                                   04/21/2017 16:38:54 PAGE 1   
 
 
 C51 COMPILER V6.02, COMPILATION OF MODULE MAIN
@@ -9,19 +9,131 @@ stmt level    source
 
    1          #include <reg932.h>
    2          
-   3          void main(){
-   4   1      
-   5   1      }
+   3          //Button definitions
+   4          sbit bTopLeft = P2^0;
+   5          sbit bTopMid = P0^1;
+   6          sbit bTopRight = P2^3;
+   7          sbit bMidLeft = P0^2;
+   8          sbit bMidMid = P1^4;
+   9          sbit bMidRight = P0^0;
+  10          sbit bBotLeft = P2^1;
+  11          sbit bBotMid = P0^3;
+  12          sbit bBotRight = P2^2;
+  13          
+  14          //Characters representing each location's status
+  15          // ' ' means Not taken
+  16          // 'O' means taken by O
+  17          // 'X' means taken by X
+  18          
+  19          //First 3 characters are top row left->right
+  20          //Next 3 are middle row left->right
+  21          //Last 3 are bottom row left->right
+  22          char gameStatus[9];
+  23          
+  24          //Boolean variable to track if the game should continue
+  25          bit gameEnd;
+  26          
+  27          //Handles 1-time initialization code
+  28          void StartGame();
+  29          
+  30          //Loops through and checks each button
+  31          //Returns (as a number) the location of the first
+  32          //button pressed
+  33          // 0 is returned if no button is pressed
+  34          
+  35          //Location grid layout
+  36          
+  37          //------Top------//
+  38          // 1  |  2  |  3 //
+  39          // 4  |  5  |  6 //
+  40          // 7  |  8  |  9 //
+  41          //-----Bottom----//
+  42          char PollButtons();
+  43          
+  44          bit CheckWin();
+  45          void main(){
+  46   1        char input; //The input from a specific polling sequence
+  47   1      
+  48   1        //Setup I/O ports
+  49   1        //TODO - Using bidirectional for now, does serial need something else?
+  50   1        P2M1 = 0x00;
+  51   1        P1M1 = 0x00;
+  52   1        P0M1 = 0x00;
+  53   1        
+  54   1        //Loop forever until power off
+  55   1        while(1){
+C51 COMPILER V6.02  MAIN                                                                   04/21/2017 16:38:54 PAGE 2   
+
+  56   2          StartGame();
+  57   2      
+  58   2      	//Game loop - run until victory
+  59   2      	while(!gameEnd){
+  60   3            //Check for input
+  61   3      	  input = PollButtons();
+  62   3      	  if(input != 0){
+  63   4              if(gameStatus[input - 1] != ' '){
+  64   5                //Record new game input
+  65   5                gameStatus[input - 1] = 'X';
+  66   5      
+  67   5      		  //Check for win condition
+  68   5      		  if(CheckWin){
+  69   6      		    //Victory
+  70   6                  gameEnd = 1;
+  71   6      		  }
+  72   5      	    }
+  73   4      	  }
+  74   3      	}   
+  75   2        }
+  76   1      }
+  77          
+  78          void StartGame(){
+  79   1        int i;
+  80   1        gameEnd = 0;
+  81   1        
+  82   1        for(i = 0; i < 9; i++){
+  83   2          gameStatus[i] = ' ';
+  84   2        }
+  85   1      
+  86   1        return;
+  87   1      }
+  88          
+  89          char PollButtons(){
+  90   1        //Loop through and check each button
+  91   1        if(!bTopLeft)
+  92   1          return 1;
+  93   1        if(!bTopMid)
+  94   1          return 2;
+  95   1        if(!bTopRight)
+  96   1          return 3;
+  97   1        if(!bMidLeft)
+  98   1          return 4;
+  99   1        if(!bMidMid)
+ 100   1          return 5;
+ 101   1        if(!bMidRight)
+ 102   1          return 6;
+ 103   1        if(!bBotLeft)
+ 104   1          return 7;
+ 105   1        if(!bBotMid)
+ 106   1          return 8;
+ 107   1        if(!bBotRight)
+ 108   1          return 9;
+ 109   1      }
+ 110          
+ 111          bit CheckWin(){
+ 112   1        return 0;
+ 113   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =      1    ----
+   CODE SIZE        =    118    ----
+C51 COMPILER V6.02  MAIN                                                                   04/21/2017 16:38:54 PAGE 3   
+
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =   ----    ----
+   DATA SIZE        =      9       1
    IDATA SIZE       =   ----    ----
-   BIT SIZE         =   ----    ----
+   BIT SIZE         =      1    ----
 END OF MODULE INFORMATION.
 
 
