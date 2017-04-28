@@ -24,7 +24,7 @@ Options 1,0,0  // Target 'Target 1'
  EnvLib ()
  EnvReg (ÿPhilips\)
  OrgReg (ÿPhilips\)
- TgStat=9
+ TgStat=0
  OutDir (.\)
  OutName (FinalProject)
  GenApp=1

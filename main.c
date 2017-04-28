@@ -1,4 +1,5 @@
 #include <reg932.h>
+#include "uart.h" //Needed for serial communications
 
 //Button definitions
 sbit bTopLeft = P2^0;
@@ -10,6 +11,13 @@ sbit bMidRight = P0^0;
 sbit bBotLeft = P2^1;
 sbit bBotMid = P0^3;
 sbit bBotRight = P2^2;
+
+
+//Description: The display() outputs the current state of the game
+//to the serial port.
+//Pre:  gameStatus[] must be populated or cleared
+//Post: Current state of the game will be displayed.
+void SerialDisplay();
 
 //Characters representing each location's status
 // ' ' means Not taken
@@ -44,19 +52,23 @@ char PollButtons();
 bit CheckWin();
 void main(){
   char input; //The input from a specific polling sequence
+  EA = 1;  //Enalbes interrupts
 
   //Setup I/O ports
   //TODO - Using bidirectional for now, does serial need something else?
   P2M1 = 0x00;
   P1M1 = 0x00;
   P0M1 = 0x00;
+SerialDisplay();  //Just for testings
   
   //Loop forever until power off
   while(1){
     StartGame();
 
+
 	//Game loop - run until victory
 	while(!gameEnd){
+
       //Check for input
 	  input = PollButtons();
 	  if(input != 0){
@@ -110,4 +122,27 @@ char PollButtons(){
 
 bit CheckWin(){
   return 0;
+}
+
+void SerialDisplay()
+{
+  uart_init(); //Initializes serial transmission
+  uart_transmit('H');
+  uart_transmit('E');
+  uart_transmit('L');
+  uart_transmit('L');
+  uart_transmit('O');
+  uart_transmit('\n');
+
+  
+  uart_transmit('H');
+  uart_transmit('E');
+  uart_transmit('L');
+  uart_transmit('L');
+  uart_transmit('O');
+  uart_transmit('\n');
+
+
+
+  return;
 }
