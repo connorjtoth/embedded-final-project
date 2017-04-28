@@ -1,4 +1,4 @@
-C51 COMPILER V6.02  MAIN                                                                   04/21/2017 16:38:54 PAGE 1   
+C51 COMPILER V6.02  MAIN                                                                   04/27/2017 20:21:27 PAGE 1   
 
 
 C51 COMPILER V6.02, COMPILATION OF MODULE MAIN
@@ -20,120 +20,242 @@ stmt level    source
   11          sbit bBotMid = P0^3;
   12          sbit bBotRight = P2^2;
   13          
-  14          //Characters representing each location's status
-  15          // ' ' means Not taken
-  16          // 'O' means taken by O
-  17          // 'X' means taken by X
-  18          
-  19          //First 3 characters are top row left->right
-  20          //Next 3 are middle row left->right
-  21          //Last 3 are bottom row left->right
-  22          char gameStatus[9];
-  23          
-  24          //Boolean variable to track if the game should continue
-  25          bit gameEnd;
-  26          
-  27          //Handles 1-time initialization code
-  28          void StartGame();
-  29          
-  30          //Loops through and checks each button
-  31          //Returns (as a number) the location of the first
-  32          //button pressed
-  33          // 0 is returned if no button is pressed
-  34          
-  35          //Location grid layout
-  36          
-  37          //------Top------//
-  38          // 1  |  2  |  3 //
-  39          // 4  |  5  |  6 //
-  40          // 7  |  8  |  9 //
-  41          //-----Bottom----//
-  42          char PollButtons();
-  43          
-  44          bit CheckWin();
-  45          void main(){
-  46   1        char input; //The input from a specific polling sequence
-  47   1      
-  48   1        //Setup I/O ports
-  49   1        //TODO - Using bidirectional for now, does serial need something else?
-  50   1        P2M1 = 0x00;
-  51   1        P1M1 = 0x00;
-  52   1        P0M1 = 0x00;
-  53   1        
-  54   1        //Loop forever until power off
-  55   1        while(1){
-C51 COMPILER V6.02  MAIN                                                                   04/21/2017 16:38:54 PAGE 2   
+  14          //Light definitions
+  15          sbit lTopLeft = P2^4;
+  16          sbit lTopMid = P0^5;
+  17          sbit lTopRight = P2^7;
+  18          sbit lMidLeft = P0^6;
+  19          sbit lMidMid = P1^6;
+  20          sbit lMidRight = P0^4;
+  21          sbit lBotLeft = P2^5;
+  22          sbit lBotMid = P0^7;
+  23          sbit lBotRight = P2^6;
+  24          
+  25          
+  26          //Characters representing each location's status
+  27          // ' ' means Not taken
+  28          // 'O' means taken by O
+  29          // 'X' means taken by X
+  30          
+  31          //First 3 characters are top row left->right
+  32          //Next 3 are middle row left->right
+  33          //Last 3 are bottom row left->right
+  34          char gameStatus[9];
+  35          
+  36          //Boolean variable to track if the game should continue
+  37          bit gameEnd;
+  38          
+  39          //Handles 1-time initialization code
+  40          void StartGame();
+  41          
+  42          //Loops through and checks each button
+  43          //Returns (as a number) the location of the first
+  44          //button pressed
+  45          // 0 is returned if no button is pressed
+  46          
+  47          //Location grid layout
+  48          
+  49          //------Top------//
+  50          // 1  |  2  |  3 //
+  51          // 4  |  5  |  6 //
+  52          // 7  |  8  |  9 //
+  53          //-----Bottom----//
+  54          char PollButtons();
+  55          
+C51 COMPILER V6.02  MAIN                                                                   04/27/2017 20:21:27 PAGE 2   
 
-  56   2          StartGame();
-  57   2      
-  58   2      	//Game loop - run until victory
-  59   2      	while(!gameEnd){
-  60   3            //Check for input
-  61   3      	  input = PollButtons();
-  62   3      	  if(input != 0){
-  63   4              if(gameStatus[input - 1] != ' '){
-  64   5                //Record new game input
-  65   5                gameStatus[input - 1] = 'X';
-  66   5      
-  67   5      		  //Check for win condition
-  68   5      		  if(CheckWin){
-  69   6      		    //Victory
-  70   6                  gameEnd = 1;
-  71   6      		  }
-  72   5      	    }
-  73   4      	  }
-  74   3      	}   
-  75   2        }
-  76   1      }
-  77          
-  78          void StartGame(){
-  79   1        int i;
-  80   1        gameEnd = 0;
-  81   1        
-  82   1        for(i = 0; i < 9; i++){
-  83   2          gameStatus[i] = ' ';
-  84   2        }
-  85   1      
-  86   1        return;
-  87   1      }
-  88          
-  89          char PollButtons(){
-  90   1        //Loop through and check each button
-  91   1        if(!bTopLeft)
-  92   1          return 1;
-  93   1        if(!bTopMid)
-  94   1          return 2;
-  95   1        if(!bTopRight)
-  96   1          return 3;
-  97   1        if(!bMidLeft)
-  98   1          return 4;
-  99   1        if(!bMidMid)
- 100   1          return 5;
- 101   1        if(!bMidRight)
- 102   1          return 6;
- 103   1        if(!bBotLeft)
- 104   1          return 7;
- 105   1        if(!bBotMid)
- 106   1          return 8;
- 107   1        if(!bBotRight)
- 108   1          return 9;
- 109   1      }
- 110          
- 111          bit CheckWin(){
- 112   1        return 0;
- 113   1      }
+  56          bit CheckWin();
+  57          
+  58          void LEDDisplay();
+  59          
+  60          void main()
+  61          {
+  62   1        char input; //The input from a specific polling sequence
+  63   1      
+  64   1        //Setup I/O ports
+  65   1        //TODO - Using bidirectional for now, does serial need something else?
+  66   1        P2M1 = 0x00;
+  67   1        P1M1 = 0x00;
+  68   1        P0M1 = 0x00;
+  69   1        
+  70   1        //Loop forever until power off
+  71   1        while(1)
+  72   1        {
+  73   2          StartGame();
+  74   2      
+  75   2      	//Game loop - run until victory
+  76   2      	while(!gameEnd)
+  77   2      	{
+  78   3      	  if(!gameEnd)
+  79   3      	  {
+  80   4              //Check for input
+  81   4      	    do
+  82   4      	    {
+  83   5      	      input = PollButtons();
+  84   5      	    }while(input == 0 || gameStatus[input - 1] != ' ');
+  85   4              //Record new game input
+  86   4              gameStatus[input - 1] = 'X';
+  87   4      
+  88   4              //Show new display
+  89   4      	    LEDDisplay();
+  90   4      
+  91   4      	    //Check for win condition
+  92   4              if(CheckWin())
+  93   4      	    {
+  94   5      	      //Victory
+  95   5                gameEnd = 1;
+  96   5        	    }
+  97   4      	  }
+  98   3            
+  99   3      	  if(!gameEnd)
+ 100   3      	  {
+ 101   4      	    //Player 2 Logic
+ 102   4      	    //Check for input
+ 103   4      	    do
+ 104   4      	    {
+ 105   5      	      input = PollButtons();
+ 106   5      	    }while(input == 0 || gameStatus[input - 1] != ' ');
+ 107   4              //Record new game input
+ 108   4              gameStatus[input - 1] = 'O';
+ 109   4      
+ 110   4              //Show new display
+ 111   4        	    LEDDisplay();
+ 112   4      
+ 113   4      	    //Check for win condition
+ 114   4              if(CheckWin())
+ 115   4      	    {
+ 116   5      	      //Victory
+ 117   5                gameEnd = 1;
+C51 COMPILER V6.02  MAIN                                                                   04/27/2017 20:21:27 PAGE 3   
+
+ 118   5      	    }
+ 119   4      	  }
+ 120   3      
+ 121   3      	  //Wait for buttons to release
+ 122   3      	  while(PollButtons() != 0);
+ 123   3      	}   
+ 124   2        }
+ 125   1      }
+ 126          
+ 127          void StartGame(){
+ 128   1        int i;
+ 129   1        gameEnd = 0;
+ 130   1        
+ 131   1        for(i = 0; i < 9; i++){
+ 132   2          gameStatus[i] = ' ';
+ 133   2        }
+ 134   1      
+ 135   1        //Reset lights
+ 136   1        lTopLeft = 1;
+ 137   1        lTopMid = 1;
+ 138   1        lTopRight = 1;
+ 139   1        lMidLeft = 1;
+ 140   1        lMidMid = 1;
+ 141   1        lMidRight = 1;
+ 142   1        lBotLeft = 1;
+ 143   1        lBotMid = 1;
+ 144   1        lBotRight = 1;
+ 145   1      
+ 146   1        return;
+ 147   1      }
+ 148          
+ 149          char PollButtons(){
+ 150   1        //Loop through and check each button
+ 151   1        if(!bTopLeft)
+ 152   1          return 1;
+ 153   1        if(!bTopMid)
+ 154   1          return 2;
+ 155   1        if(!bTopRight)
+ 156   1          return 3;
+ 157   1        if(!bMidLeft)
+ 158   1          return 4;
+ 159   1        if(!bMidMid)
+ 160   1          return 5;
+ 161   1        if(!bMidRight)
+ 162   1          return 6;
+ 163   1        if(!bBotLeft)
+ 164   1          return 7;
+ 165   1        if(!bBotMid)
+ 166   1          return 8;
+ 167   1        if(!bBotRight)
+ 168   1          return 9;
+ 169   1      
+ 170   1        return 0;
+ 171   1      }
+ 172          
+ 173          bit CheckWin(){
+ 174   1        //Check winning by rows
+ 175   1        int i = 0;
+ 176   1        for(i = 0; i < 3; i++)
+ 177   1        {
+ 178   2          if(gameStatus[3 * i] == gameStatus[(3*i) + 1] &&
+ 179   2      	   gameStatus[3 * i] == gameStatus[(3*i) + 2] &&
+C51 COMPILER V6.02  MAIN                                                                   04/27/2017 20:21:27 PAGE 4   
+
+ 180   2      	   gameStatus[3 * i] != ' ')
+ 181   2      	   
+ 182   2      	   return 1;
+ 183   2        }
+ 184   1      
+ 185   1        //Check winning by columns
+ 186   1        for(i = 0; i < 3; i++)
+ 187   1        {
+ 188   2          if(gameStatus[i] == gameStatus[i + 3] &&
+ 189   2      	   gameStatus[i] == gameStatus[i + 6] &&
+ 190   2      	   gameStatus[i] != ' ')
+ 191   2      	   
+ 192   2      	   return 1;
+ 193   2        }
+ 194   1      
+ 195   1        //Check diagonals
+ 196   1        if(gameStatus[0] == gameStatus[4] &&
+ 197   1           gameStatus[0] == gameStatus[8] &&
+ 198   1      	 gameStatus[0] != ' ')
+ 199   1      	 
+ 200   1      	 return 1;
+ 201   1      
+ 202   1        if(gameStatus[2] == gameStatus[4] &&
+ 203   1           gameStatus[2] == gameStatus[6] &&
+ 204   1      	 gameStatus[2] != ' ')
+ 205   1      
+ 206   1      	 return 1;
+ 207   1      
+ 208   1      
+ 209   1         return 0;
+ 210   1      }
+ 211          
+ 212          void LEDDisplay() {
+ 213   1        if(gameStatus[0] != ' ')
+ 214   1        	lTopLeft = 0;
+ 215   1        if(gameStatus[1] != ' ')
+ 216   1        	lTopMid = 0;
+ 217   1        if(gameStatus[2] != ' ')
+ 218   1        	lTopRight = 0;
+ 219   1        if(gameStatus[3] != ' ')
+ 220   1        	lMidLeft = 0;
+ 221   1        if(gameStatus[4] != ' ')
+ 222   1        	lMidMid = 0;
+ 223   1        if(gameStatus[5] != ' ')
+ 224   1        	lMidRight = 0;
+ 225   1        if(gameStatus[6] != ' ')
+ 226   1        	lBotLeft = 0;
+ 227   1        if(gameStatus[7] != ' ')
+ 228   1        	lBotMid = 0;
+ 229   1        if(gameStatus[8] != ' ')
+ 230   1        	lBotRight = 0;
+ 231   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    118    ----
-C51 COMPILER V6.02  MAIN                                                                   04/21/2017 16:38:54 PAGE 3   
-
+   CODE SIZE        =    391    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
    DATA SIZE        =      9       1
    IDATA SIZE       =   ----    ----
    BIT SIZE         =      1    ----
+C51 COMPILER V6.02  MAIN                                                                   04/27/2017 20:21:27 PAGE 5   
+
 END OF MODULE INFORMATION.
 
 

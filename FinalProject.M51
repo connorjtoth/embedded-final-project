@@ -1,4 +1,4 @@
-BL51 BANKED LINKER/LOCATER V4.02                                                        04/21/2017  16:38:54  PAGE 1
+BL51 BANKED LINKER/LOCATER V4.02                                                        04/27/2017  20:21:27  PAGE 1
 
 
 BL51 BANKED LINKER/LOCATER V4.02, INVOKED BY:
@@ -30,11 +30,12 @@ LINK MAP OF MODULE:  FinalProject (MAIN)
 
             * * * * * * *   C O D E   M E M O R Y   * * * * * * *
             CODE    0000H     0003H     ABSOLUTE     
-            CODE    0003H     0036H     UNIT         ?PR?POLLBUTTONS?MAIN
-            CODE    0039H     002EH     UNIT         ?PR?MAIN?MAIN
-            CODE    0067H     0010H     UNIT         ?PR?STARTGAME?MAIN
-            CODE    0077H     000CH     UNIT         ?C_C51STARTUP
-            CODE    0083H     0002H     UNIT         ?PR?CHECKWIN?MAIN
+            CODE    0003H     0084H     UNIT         ?PR?CHECKWIN?MAIN
+            CODE    0087H     005BH     UNIT         ?PR?MAIN?MAIN
+            CODE    00E2H     0049H     UNIT         ?PR?LEDDISPLAY?MAIN
+            CODE    012BH     0039H     UNIT         ?PR?POLLBUTTONS?MAIN
+            CODE    0164H     0026H     UNIT         ?PR?STARTGAME?MAIN
+            CODE    018AH     000CH     UNIT         ?C_C51STARTUP
 
 
 
@@ -50,6 +51,7 @@ SEGMENT                          DATA_GROUP
 ?PR?MAIN?MAIN                  0011H    0001H
   +--> ?PR?STARTGAME?MAIN
   +--> ?PR?POLLBUTTONS?MAIN
+  +--> ?PR?LEDDISPLAY?MAIN
   +--> ?PR?CHECKWIN?MAIN
 
 
@@ -57,10 +59,10 @@ SEGMENT                          DATA_GROUP
 SYMBOL TABLE OF MODULE:  FinalProject (MAIN)
 
   VALUE           TYPE          NAME
+BL51 BANKED LINKER/LOCATER V4.02                                                      04/27/2017  20:21:27  PAGE 2
+
+
   ----------------------------------
-
-BL51 BANKED LINKER/LOCATER V4.02                                                      04/21/2017  16:38:54  PAGE 2
-
 
   -------         MODULE        MAIN
   C:0000H         SYMBOL        _ICE_DUMMY_
@@ -80,19 +82,22 @@ SYMBOL TABLE OF MODULE:  FinalProject (MAIN)
   B:00A8H.7       PUBLIC        EA
   B:00E8H.2       PUBLIC        EC
   B:00A8H.6       PUBLIC        EWDRT
+  B:0080H.4       PUBLIC        lMidRight
   B:00C8H.6       PUBLIC        HLTRN
   B:00A0H.2       PUBLIC        bBotRight
   B:0098H.7       PUBLIC        FE
   B:0080H.2       PUBLIC        bMidLeft
   D:00A8H         PUBLIC        IEN0
-  C:0003H         PUBLIC        PollButtons
-  C:0067H         PUBLIC        StartGame
+  C:012BH         PUBLIC        PollButtons
+  C:0164H         PUBLIC        StartGame
   D:00E8H         PUBLIC        IEN1
   B:0090H.1       PUBLIC        RxD
   B:00D8H.6       PUBLIC        I2EN
-  C:0083H         PUBLIC        CheckWin
+  C:0003H         PUBLIC        CheckWin
   B:0090H.0       PUBLIC        TxD
   B:00B8H.6       PUBLIC        PWDRT
+  B:00A0H.6       PUBLIC        lBotRight
+  B:0080H.6       PUBLIC        lMidLeft
   B:00A0H.1       PUBLIC        bBotLeft
   B:00C8H.0       PUBLIC        TMOD20
   B:00A8H.4       PUBLIC        ES
@@ -107,24 +112,31 @@ SYMBOL TABLE OF MODULE:  FinalProject (MAIN)
   B:00D0H.7       PUBLIC        CY
   B:0090H.4       PUBLIC        INT1
   B:0098H.1       PUBLIC        TI
+  B:00A0H.5       PUBLIC        lBotLeft
   B:00E8H.4       PUBLIC        ECCU
+  B:00A0H.7       PUBLIC        lTopRight
   B:00B8H.4       PUBLIC        PS
+  B:0090H.6       PUBLIC        lMidMid
   D:0008H         PUBLIC        gameStatus
   B:0080H.3       PUBLIC        bBotMid
+BL51 BANKED LINKER/LOCATER V4.02                                                      04/27/2017  20:21:27  PAGE 3
+
+
   B:00A0H.0       PUBLIC        bTopLeft
   B:00D0H.2       PUBLIC        OV
   B:00A0H.4       PUBLIC        SS
-  C:0039H         PUBLIC        main
+  C:0087H         PUBLIC        main
+  B:0080H.7       PUBLIC        lBotMid
+  B:00A0H.4       PUBLIC        lTopLeft
+  C:00E2H         PUBLIC        LEDDisplay
   B:00E8H.3       PUBLIC        ESPI
   B:0080H.1       PUBLIC        bTopMid
   D:0098H         PUBLIC        SCON
   B:0020H.0       PUBLIC        gameEnd
-BL51 BANKED LINKER/LOCATER V4.02                                                      04/21/2017  16:38:54  PAGE 3
-
-
   D:0088H         PUBLIC        TCON
   B:00A0H.2       PUBLIC        MOSI
   B:00A0H.3       PUBLIC        MISO
+  B:0080H.5       PUBLIC        lTopMid
   B:0080H.0       PUBLIC        KB0
   B:0080H.1       PUBLIC        KB1
   B:0088H.1       PUBLIC        IE0
@@ -167,6 +179,9 @@ SYMBOL TABLE OF MODULE:  FinalProject (MAIN)
   B:00D0H.4       PUBLIC        RS1
   B:0088H.6       PUBLIC        TR1
   B:0090H.3       PUBLIC        SDA
+BL51 BANKED LINKER/LOCATER V4.02                                                      04/27/2017  20:21:27  PAGE 4
+
+
   B:00B8H.0       PUBLIC        PX0
   B:00B8H.2       PUBLIC        PX1
   D:00D8H         PUBLIC        I2CON
@@ -179,9 +194,6 @@ SYMBOL TABLE OF MODULE:  FinalProject (MAIN)
   B:00A8H.4       PUBLIC        ESR
   B:00B0H.1       PUBLIC        XTAL1
   B:00B0H.0       PUBLIC        XTAL2
-BL51 BANKED LINKER/LOCATER V4.02                                                      04/21/2017  16:38:54  PAGE 4
-
-
   B:00E8H.6       PUBLIC        EST
   B:00C8H.7       PUBLIC        PLEEN
   B:00B8H.4       PUBLIC        PSR
@@ -196,66 +208,138 @@ SYMBOL TABLE OF MODULE:  FinalProject (MAIN)
   -------         DO            MAIN
   D:0011H         SYMBOL        input
   -------         ENDDO         input
-  C:0039H         LINE#         45
-  C:0039H         LINE#         50
-  C:003CH         LINE#         51
-  C:003EH         LINE#         52
-  C:0040H         LINE#         55
-  C:0040H         LINE#         56
-  C:0043H         LINE#         59
-  C:0046H         LINE#         61
-  C:004BH         LINE#         62
-  C:004FH         LINE#         63
-  C:0057H         LINE#         65
-  C:005DH         LINE#         68
-  C:0063H         LINE#         70
-  C:0065H         LINE#         71
-  C:0065H         LINE#         72
-  C:0065H         LINE#         73
-  C:0065H         LINE#         74
-  C:0067H         LINE#         75
+  C:0087H         LINE#         60
+  C:0087H         LINE#         61
+  C:0087H         LINE#         66
+  C:008AH         LINE#         67
+  C:008CH         LINE#         68
+  C:008EH         LINE#         71
+  C:008EH         LINE#         72
+  C:008EH         LINE#         73
+  C:0091H         LINE#         76
+  C:0094H         LINE#         77
+  C:0094H         LINE#         78
+  C:0097H         LINE#         79
+  C:0097H         LINE#         82
+  C:0097H         LINE#         83
+  C:009CH         LINE#         84
+  C:00A7H         LINE#         86
+  C:00ADH         LINE#         89
+  C:00B0H         LINE#         92
+  C:00B5H         LINE#         93
+  C:00B5H         LINE#         95
+  C:00B7H         LINE#         96
+  C:00B7H         LINE#         97
+  C:00B7H         LINE#         99
+  C:00BAH         LINE#         100
+  C:00BAH         LINE#         104
+  C:00BAH         LINE#         105
+  C:00BFH         LINE#         106
+  C:00CAH         LINE#         108
+  C:00D0H         LINE#         111
+  C:00D3H         LINE#         114
+  C:00D8H         LINE#         115
+BL51 BANKED LINKER/LOCATER V4.02                                                      04/27/2017  20:21:27  PAGE 5
+
+
+  C:00D8H         LINE#         117
+  C:00DAH         LINE#         118
+  C:00DAH         LINE#         119
+  C:00DAH         LINE#         122
+  C:00E2H         LINE#         123
+  C:00E2H         LINE#         124
   -------         ENDPROC       MAIN
   -------         PROC          STARTGAME
   -------         DO            STARTGAME
   D:0006H         SYMBOL        i
   -------         ENDDO         i
-  C:0067H         LINE#         78
-  C:0067H         LINE#         80
-  C:0069H         LINE#         82
-  C:006CH         LINE#         83
-  C:0076H         LINE#         84
-  C:0076H         LINE#         87
+  C:0164H         LINE#         127
+  C:0164H         LINE#         129
+  C:0166H         LINE#         131
+  C:0169H         LINE#         132
+  C:0173H         LINE#         133
+  C:0177H         LINE#         136
+  C:0179H         LINE#         137
+  C:017BH         LINE#         138
+  C:017DH         LINE#         139
+  C:017FH         LINE#         140
+  C:0181H         LINE#         141
+  C:0183H         LINE#         142
+  C:0185H         LINE#         143
+  C:0187H         LINE#         144
+  C:0189H         LINE#         147
   -------         ENDPROC       STARTGAME
   -------         PROC          POLLBUTTONS
-  C:0003H         LINE#         89
-  C:0003H         LINE#         91
-  C:0006H         LINE#         92
-  C:0009H         LINE#         93
-  C:000CH         LINE#         94
-  C:000FH         LINE#         95
-  C:0012H         LINE#         96
-  C:0015H         LINE#         97
-  C:0018H         LINE#         98
-  C:001BH         LINE#         99
-  C:001EH         LINE#         100
-  C:0021H         LINE#         101
-BL51 BANKED LINKER/LOCATER V4.02                                                      04/21/2017  16:38:54  PAGE 5
-
-
-  C:0024H         LINE#         102
-  C:0027H         LINE#         103
-  C:002AH         LINE#         104
-  C:002DH         LINE#         105
-  C:0030H         LINE#         106
-  C:0033H         LINE#         107
-  C:0036H         LINE#         108
-  C:0038H         LINE#         109
+  C:012BH         LINE#         149
+  C:012BH         LINE#         151
+  C:012EH         LINE#         152
+  C:0131H         LINE#         153
+  C:0134H         LINE#         154
+  C:0137H         LINE#         155
+  C:013AH         LINE#         156
+  C:013DH         LINE#         157
+  C:0140H         LINE#         158
+  C:0143H         LINE#         159
+  C:0146H         LINE#         160
+  C:0149H         LINE#         161
+  C:014CH         LINE#         162
+  C:014FH         LINE#         163
+  C:0152H         LINE#         164
+  C:0155H         LINE#         165
+  C:0158H         LINE#         166
+  C:015BH         LINE#         167
+  C:015EH         LINE#         168
+  C:0161H         LINE#         170
+  C:0163H         LINE#         171
   -------         ENDPROC       POLLBUTTONS
   -------         PROC          CHECKWIN
-  C:0083H         LINE#         111
-  C:0083H         LINE#         112
-  C:0084H         LINE#         113
+  -------         DO            CHECKWIN
+  D:0006H         SYMBOL        i
+  -------         ENDDO         i
+  C:0003H         LINE#         173
+  C:0003H         LINE#         175
+  C:0006H         LINE#         176
+BL51 BANKED LINKER/LOCATER V4.02                                                      04/27/2017  20:21:27  PAGE 6
+
+
+  C:0006H         LINE#         177
+  C:0006H         LINE#         178
+  C:002FH         LINE#         182
+  C:0031H         LINE#         183
+  C:003CH         LINE#         186
+  C:003FH         LINE#         187
+  C:003FH         LINE#         188
+  C:005CH         LINE#         192
+  C:005EH         LINE#         193
+  C:0069H         LINE#         196
+  C:0075H         LINE#         200
+  C:0077H         LINE#         202
+  C:0083H         LINE#         206
+  C:0085H         LINE#         209
+  C:0086H         LINE#         210
   -------         ENDPROC       CHECKWIN
+  -------         PROC          LEDDISPLAY
+  C:00E2H         LINE#         212
+  C:00E2H         LINE#         213
+  C:00E8H         LINE#         214
+  C:00EAH         LINE#         215
+  C:00F0H         LINE#         216
+  C:00F2H         LINE#         217
+  C:00F8H         LINE#         218
+  C:00FAH         LINE#         219
+  C:0100H         LINE#         220
+  C:0102H         LINE#         221
+  C:0108H         LINE#         222
+  C:010AH         LINE#         223
+  C:0110H         LINE#         224
+  C:0112H         LINE#         225
+  C:0118H         LINE#         226
+  C:011AH         LINE#         227
+  C:0120H         LINE#         228
+  C:0122H         LINE#         229
+  C:0128H         LINE#         230
+  C:012AH         LINE#         231
+  -------         ENDPROC       LEDDISPLAY
   -------         ENDMOD        MAIN
 
 LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)
