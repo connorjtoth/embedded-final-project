@@ -12,14 +12,11 @@ sbit bBotLeft = P2^1;
 sbit bBotMid = P0^3;
 sbit bBotRight = P2^2;
 
-<<<<<<< HEAD
-
 //Description: The display() outputs the current state of the game
 //to the serial port.
 //Pre:  gameStatus[] must be populated or cleared
 //Post: Current state of the game will be displayed.
 void SerialDisplay();
-=======
 //Light definitions
 sbit lTopLeft = P2^4;
 sbit lTopMid = P0^5;
@@ -30,8 +27,6 @@ sbit lMidRight = P0^4;
 sbit lBotLeft = P2^5;
 sbit lBotMid = P0^7;
 sbit lBotRight = P2^6;
-
->>>>>>> 5c9b10e2604c25b23b9e0bb3d5ecd3ee395cae05
 
 //Characters representing each location's status
 // ' ' means Not taken
@@ -86,7 +81,6 @@ SerialDisplay();  //Just for testings
 
 
 	//Game loop - run until victory
-<<<<<<< HEAD
 	while(!gameEnd){
 
       //Check for input
@@ -101,7 +95,6 @@ SerialDisplay();  //Just for testings
 		    //Victory
             gameEnd = 1;
 		  }
-=======
 	while(!gameEnd)
 	{
 	  if(!gameEnd)
@@ -144,7 +137,6 @@ SerialDisplay();  //Just for testings
 	    {
 	      //Victory
           gameEnd = 1;
->>>>>>> 5c9b10e2604c25b23b9e0bb3d5ecd3ee395cae05
 	    }
 	  }
 
