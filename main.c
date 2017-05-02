@@ -28,6 +28,9 @@ sbit lBotLeft = P2^5;
 sbit lBotMid = P0^7;
 sbit lBotRight = P2^6;
 
+const unsigned char LED_FLASH_TIME_HIGH = -50000 >> 8;
+const unsigned char LED_FLASH_TIME_LOW = -50000;
+
 //Characters representing each location's status
 // ' ' means Not taken
 // 'O' means taken by O
@@ -62,6 +65,23 @@ bit CheckWin();
 
 void LEDDisplay();
 
+void display() interrupt 1
+{
+  /*int i;
+  for(i = 0; i < 9; i++)
+  {
+    if(gameStatus[i] == 'X')
+	{
+      lTopLeft = ~lTopLeft;
+	}
+	else if(gameStatus[i] == 'O')
+	{
+
+	}
+  }*/
+  return;
+}
+
 void main()
 {
   char input; //The input from a specific polling sequence
@@ -72,7 +92,7 @@ void main()
   P2M1 = 0x00;
   P1M1 = 0x00;
   P0M1 = 0x00;
-SerialDisplay();  //Just for testings
+  SerialDisplay();  //Just for testings
   
   //Loop forever until power off
   while(1)
@@ -83,20 +103,7 @@ SerialDisplay();  //Just for testings
 	//Game loop - run until victory
 	while(!gameEnd){
 
-      //Check for input
-	  input = PollButtons();
-	  if(input != 0){
-        if(gameStatus[input - 1] != ' '){
-          //Record new game input
-          gameStatus[input - 1] = 'X';
-
-		  //Check for win condition
-		  if(CheckWin){
-		    //Victory
-            gameEnd = 1;
-		  }
-	while(!gameEnd)
-	{
+      //Player 1 Logic
 	  if(!gameEnd)
 	  {
         //Check for input
@@ -164,6 +171,14 @@ void StartGame(){
   lBotLeft = 1;
   lBotMid = 1;
   lBotRight = 1;
+
+  //Initialize timer 0 for LED calculations
+  /*TMOD &= 0x10;
+  TH1 = LED_FLASH_TIME_HIGH;
+  TL1 = LED_FLASH_TIME_LOW;
+
+  IEN0 &= 0x82;
+  TR0 = 1;*/
 
   return;
 }
