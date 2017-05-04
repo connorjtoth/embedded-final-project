@@ -115,11 +115,13 @@ DESC:    Gets a received 8-bit value from the UART
 RETURNS: Received data
 CAUTION: uart_init must be called first
 ************************************************************************/
-unsigned char uart_get
+
+//This was commented out by Connor J. Toth
+/*unsigned char uart_get
   (
   void
   )
 {
   return SBUF;
-} // uart_get
+} // uart_get*/
 

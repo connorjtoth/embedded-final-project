@@ -1,4 +1,4 @@
-C51 COMPILER V6.02  UART_UPDATE                                                            05/02/2017 17:26:15 PAGE 1   
+C51 COMPILER V6.02  UART_UPDATE                                                            05/04/2017 15:07:33 PAGE 1   
 
 
 C51 COMPILER V6.02, COMPILATION OF MODULE UART_UPDATE
@@ -62,7 +62,7 @@ stmt level    source
   53   1        // TxD = push-pull, RxD = input
   54   1        P1M1 &= ~0x01;
   55   1        P1M2 |= 0x01;
-C51 COMPILER V6.02  UART_UPDATE                                                            05/02/2017 17:26:15 PAGE 2   
+C51 COMPILER V6.02  UART_UPDATE                                                            05/04/2017 15:07:33 PAGE 2   
 
   56   1        P1M1 |= 0x02;
   57   1        P1M2 &= ~0x02;
@@ -126,20 +126,22 @@ stmt level    source
  115          RETURNS: Received data
  116          CAUTION: uart_init must be called first
  117          ************************************************************************/
-C51 COMPILER V6.02  UART_UPDATE                                                            05/02/2017 17:26:15 PAGE 3   
+C51 COMPILER V6.02  UART_UPDATE                                                            05/04/2017 15:07:33 PAGE 3   
 
- 118          unsigned char uart_get
- 119            (
- 120            void
- 121            )
- 122          {
- 123   1        return SBUF;
- 124   1      } // uart_get
- 125          
+ 118          
+ 119          //This was commented out by Connor J. Toth
+ 120          /*unsigned char uart_get
+ 121            (
+ 122            void
+ 123            )
+ 124          {
+ 125            return SBUF;
+ 126          } // uart_get*/
+ 127          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =     73    ----
+   CODE SIZE        =     70    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----

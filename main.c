@@ -17,7 +17,7 @@ sbit bBotRight = P2^2;
 //to the serial port.
 //Pre:  gameStatus[] must be populated or cleared
 //Post: Current state of the game will be displayed.
-void SerialDisplay();
+void SerialDisplay(char *);
 //Light definitions
 sbit lTopLeft = P2^4;
 sbit lTopMid = P0^5;
@@ -30,8 +30,8 @@ sbit lBotMid = P0^7;
 sbit lBotRight = P2^6;
 
 
-const unsigned char LED_FLASH_TIME_HIGH = -50000 >> 8;
-const unsigned char LED_FLASH_TIME_LOW =  -50000;
+#define LED_FLASH_TIME_HIGH = -50000 >> 8
+#define LED_FLASH_TIME_LOW =  -50000
 
 unsigned char length;
 
@@ -49,7 +49,7 @@ unsigned char song_main_buzzer1[]   = {NOTE_REST, NOTE_A6, NOTE_REST, NOTE_A6, N
 //unsigned char song_main_buzzer3[] = {NOTE_C4, NOTE_REST, NOTE_C4, NOTE_REST, NOTE_G4, NOTE_REST, NOTE_C4, NOTE_REST, NOTE_C4,   NOTE_REST, NOTE_C4, NOTE_E4,   NOTE_REST, NOTE_C4, NOTE_G4,   NOTE_REST, NOTE_AS3, NOTE_REST, NOTE_AS3, NOTE_REST, NOTE_AS3, NOTE_REST, NOTE_REST,  NOTE_REST };
 //unsigned char song_main_buzzer4[] = {NOTE_C3, NOTE_REST, NOTE_A2, NOTE_REST, NOTE_G2, NOTE_REST, NOTE_A2, NOTE_C3,   NOTE_REST, NOTE_C3,   NOTE_A2, NOTE_REST, NOTE_C3,   NOTE_G2, NOTE_A2,   NOTE_F4,   NOTE_AS2, NOTE_REST, NOTE_G2,  NOTE_REST, NOTE_F2,  NOTE_REST, NOTE_G2,    NOTE_AS2  };
 //unsigned char song_main_duration[]= {DUR_8, DUR_8, DUR_8,   DUR_8,     DUR_8,   DUR_8,     DUR_8,   DUR_8,     DUR_8,   DUR_8,     DUR_8,     DUR_8,     DUR_8,   DUR_8,     DUR_8,     DUR_8,   DUR_8,     DUR_8,     DUR_8,    DUR_8,     DUR_8,    DUR_8,     DUR_8,    DUR_8,     DUR_8,      DUR_8     ,DUR_8,     DUR_8,    DUR_8,     DUR_8,      DUR_8,     DUR_8,     DUR_8,    DUR_8,     DUR_8     };
-unsigned char song_main_duration[] = {DUR_8};
+//unsigned char song_main_duration[] = {DUR_8};
 // first ending
 //unsigned char song_ending1_buzzer1[] = {NOTE_REST, NOTE_G4,  NOTE_REST, NOTE_F4,    NOTE_REST, NOTE_REST, NOTE_F4,  NOTE_REST, NOTE_REST };
 //unsigned char song_ending1_buzzer2[] = {NOTE_REST, NOTE_D4,  NOTE_REST, NOTE_D4,    NOTE_REST, NOTE_REST, NOTE_D4,  NOTE_REST, NOTE_REST };
@@ -282,7 +282,7 @@ void restart_timer1 ( )
 //First 3 characters are top row left->right
 //Next 3 are middle row left->right
 //Last 3 are bottom row left->right
-char gameStatus[9];
+char gameStatus[10];
 
 //Boolean variable to track if the game should continue
 bit gameEnd;
@@ -364,12 +364,29 @@ void display ( ) interrupt 1
 
 unsigned char input = 0x00;//The input from a specific polling sequence
 
-void main()
+
+char welcome_msg[] = "HELLO!\n\0";
+char p1_msg[] = {'1','\0'};
+char p2_msg[] = {'2','\0'};
+char turn_pre[] = {'I','T',' ','I','S',' ','P','\0'};
+char turn_post[] = {'\'','S',' ','T','U','R','N','\n','\0'};
+
+
+
+int iterator = 0;
+
+void main ( )
 {
+  for (iterator = 0; iterator < 9; iterator++)
+  {
+    gameStatus[iterator] = ' ';
+  }
+  gameStatus[9] = 0; //null terminating char array
   introduction_flag = 1;
   note_ptr =     song_main_buzzer1;
-  duration_ptr = song_main_duration;
+  duration_ptr = 0;
   play_sound_byte();
+  uart_init(); //Initializes serial transmission
 
   //char input = 0; 
   EA = 1;  //Enalbes interrupts
@@ -379,7 +396,9 @@ void main()
   P2M1 = 0x00;
   P1M1 = 0x00;
   P0M1 = 0x00;
-  SerialDisplay();  //Just for testings
+  SerialDisplay(welcome_msg);  //Just for testings
+
+  SerialDisplay(welcome_msg);  //Just for testings
   
   //Loop forever until power off
   while(1)
@@ -405,6 +424,8 @@ void main()
         //Show new display
 	    LEDDisplay();
 
+        SerialDisplay(gameStatus);
+
 	    //Check for win condition
         if(CheckWin())
 	    {
@@ -420,9 +441,13 @@ void main()
 	    do
 	    {
 	      input = PollButtons();
-	    }while(input == 0 || gameStatus[input - 1] != ' ');
+	    }
+        while(input == 0 || gameStatus[input - 1] != ' ');
+        
         //Record new game input
         gameStatus[input - 1] = 'O';
+		
+        SerialDisplay(gameStatus);
 
         //Show new display
   	    LEDDisplay();
@@ -434,7 +459,7 @@ void main()
           gameEnd = 1;
 	    }
 	  }
-
+      SerialDisplay(gameStatus);
 	  //Wait for buttons to release
 	  while(PollButtons() != 0);
     }
@@ -560,25 +585,18 @@ void LEDDisplay() {
   	lBotRight = 0;
 }
 
-void SerialDisplay()
+char msg_i = 0;
+void SerialDisplay(char s_msg[])
 {
-  uart_init(); //Initializes serial transmission
-  uart_transmit('H');
-  uart_transmit('E');
-  uart_transmit('L');
-  uart_transmit('L');
-  uart_transmit('O');
-  uart_transmit('\n');
+  msg_i = 0;
+  while (s_msg[msg_i] != '\0')
+  {
+    uart_transmit(s_msg[msg_i]);
+    msg_i++;
+  }
 
-  
-  uart_transmit('H');
-  uart_transmit('E');
-  uart_transmit('L');
-  uart_transmit('L');
-  uart_transmit('O');
-  uart_transmit('\n');
-
-
+  msg_i = 0;
+  for(iterator = 0; iterator < 10000; iterator++);
 
   return;
 }
