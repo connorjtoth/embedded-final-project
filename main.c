@@ -35,8 +35,8 @@ sbit p2_pulse = P1^3;
 unsigned char pulse_counter;
 
 
-#define LED_FLASH_TIME_HIGH -50000 >> 8
-#define LED_FLASH_TIME_LOW  -50000
+#define LED_FLASH_TIME_HIGH -65535 >> 8
+#define LED_FLASH_TIME_LOW  -65535
 
 unsigned char length;
 
@@ -45,7 +45,6 @@ void shortDelay()
 {
   for (pulse_counter = 0; pulse_counter < 255; pulse_counter++);
 }
-
 
 
 // ----------------------------
@@ -119,7 +118,7 @@ void play_sound_byte ( )
 
   // Enable Timer 0, Timer 1 interrupts
   // Disable Serial interrupts
-  IEN0 = 0x8A;
+  IEN0 |= 0x8A;
 
   // Prioritize Timer 1 over Timer 0
   IP0 = 0x08;
@@ -148,11 +147,6 @@ void play_sound_byte ( )
 
   SPKR = 0;
   while(introduction_flag);
-
-  //Disable Timer 1,0 interrupts
-  //Enable Serial Interrupt
-  //
-  IEN0 = 0x90;
 }
 
 
@@ -320,8 +314,6 @@ char PollButtons();
 
 bit CheckWin();
 
-void LEDDisplay();
-
 
 
 /*
@@ -357,17 +349,49 @@ void display ( ) interrupt TIMER_0
       note_its++;
     }
   }
-  
-  /*for(i = 0; i < 9; i++)
+  else
   {
-    if(gameStatus[i] == 'X')
-    {
-      lTopLeft = ~lTopLeft;
-    }
-    else if(gameStatus[i] == 'O')
-    {
-    }
-  }*/
+    TR0 = 0;
+    if(gameStatus[0] == 'X')
+	  lTopLeft = 0;
+	else if(gameStatus[0] == 'O')
+	  lTopLeft = ~lTopLeft;
+	if(gameStatus[1] == 'X')
+	  lTopMid = 0;
+	else if(gameStatus[1] == 'O')
+	  lTopMid = ~lTopMid;
+	if(gameStatus[2] == 'X')
+	  lTopRight = 0;
+	else if(gameStatus[2] == 'O')
+	  lTopRight = ~lTopRight;
+	if(gameStatus[3] == 'X')
+	  lMidLeft = 0;
+    else if(gameStatus[3] == 'O')
+	  lMidLeft = ~lMidLeft;
+	if(gameStatus[4] == 'X')
+	  lMidMid = 0;
+	else if(gameStatus[4] == 'O')
+	  lMidMid = ~lMidMid;
+	if(gameStatus[5] == 'X')
+	  lMidRight = 0;
+	else if(gameStatus[5] == 'O')
+	  lMidRight = ~lMidRight;
+	if(gameStatus[6] == 'X')
+	  lBotLeft = 0;
+	else if(gameStatus[6] == 'O')
+	  lBotLeft = ~lBotLeft;
+	if(gameStatus[7] == 'X')
+	  lBotMid = 0;
+	else if(gameStatus[7] == 'O')
+	  lBotMid = ~lBotMid;
+	if(gameStatus[8] == 'X')
+	  lBotRight = 0;
+	else if(gameStatus[8] == 'O')
+	  lBotRight = ~lBotRight;
+	TH0= LED_FLASH_TIME_HIGH;
+	TL0 = LED_FLASH_TIME_LOW;
+	TR0 = 1;
+  }
   return;
 }
 
@@ -389,7 +413,7 @@ char line[] = "-----";       // used in printGameStatus
 char row;                     // used in printGameStatus
 char col;                    // used in printGameStatus
 
-bit AI_flag = 0;
+bit AI_flag = 1;
 
 // ------------------------------------
 // print Game Status
@@ -437,6 +461,7 @@ void main ( )
   duration_ptr = nbc_durations;
   num_notes = 2;
   //play_sound_byte();
+  introduction_flag = 0;
   
   //char input = 0; 
   EA = 1;  //Enalbes interrupts
@@ -473,9 +498,6 @@ void main ( )
       
       //Record new game input
       gameStatus[input - 1] = current_player;
-
-      //Show new display
-      LEDDisplay();
 
       printGameStatus();
 
@@ -543,11 +565,11 @@ void StartGame(){
   lBotRight = 1;
 
   //Initialize timer 0 for LED calculations
-  /*TMOD &= 0x10;
-  TH1 = LED_FLASH_TIME_HIGH;
-  TL1 = LED_FLASH_TIME_LOW;
-  IEN0 &= 0x82;
-  TR0 = 1;*/
+  TMOD = 0x01;
+  TH0 = LED_FLASH_TIME_HIGH;
+  TL0 = LED_FLASH_TIME_LOW;
+  IEN0 |= 0x82;
+  TR0 = 1;
 
   //Player 1 should always go first
   current_player = 'X';
@@ -616,28 +638,6 @@ bit CheckWin(){
 
 
    return 0;
-}
-
-void LEDDisplay()
-{
-  if(gameStatus[0] != ' ')
-  	lTopLeft = 0;
-  if(gameStatus[1] != ' ')
-  	lTopMid = 0;
-  if(gameStatus[2] != ' ')
-  	lTopRight = 0;
-  if(gameStatus[3] != ' ')
-  	lMidLeft = 0;
-  if(gameStatus[4] != ' ')
-  	lMidMid = 0;
-  if(gameStatus[5] != ' ')
-  	lMidRight = 0;
-  if(gameStatus[6] != ' ')
-  	lBotLeft = 0;
-  if(gameStatus[7] != ' ')
-  	lBotMid = 0;
-  if(gameStatus[8] != ' ')
-  	lBotRight = 0;
 }
 
 char msg_i = 0;
