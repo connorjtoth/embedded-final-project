@@ -1,4 +1,4 @@
-C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:36:45 PAGE 1   
+C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:46:38 PAGE 1   
 
 
 C51 COMPILER V6.02, COMPILATION OF MODULE MAIN
@@ -26,7 +26,7 @@ stmt level    source
   17          //to the serial port.
   18          //Pre:  gameStatus[] must be populated or cleared
   19          //Post: Current state of the game will be displayed.
-  20          void SerialDisplay(char *);
+  20          
   21          //Light definitions
   22          sbit lTopLeft = P2^4;
   23          sbit lTopMid = P0^5;
@@ -49,660 +49,677 @@ stmt level    source
   40          
   41          unsigned char length;
   42          
-  43          
-  44          void shortDelay()
-  45          {
-  46   1        for (pulse_counter = 0; pulse_counter < 255; pulse_counter++);
-  47   1      }
-  48          
-  49          
-  50          // ----------------------------
-  51          // Connor's variables start
-  52          // ----------------------------
-  53          
-  54          //-----------------------
-  55          
-C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:36:45 PAGE 2   
+  43          void restart_timer1 ( );
+  44          void SerialDisplay(char *);
+  45          //Handles 1-time initialization code
+  46          void StartGame();
+  47          char PollButtons();
+  48          void play_sound_byte();
+  49          bit CheckWin();
+  50          
+  51          
+  52          
+  53          // --------------------
+  54          // Connors variables end
+  55          // --------------------
+C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:46:38 PAGE 2   
 
-  56          //start									1		2			3			4		5			6		7		8			9			10		11			12			13		14		15			16			17***lastone		18			19		   
+  56          
+  57          
+  58          
+  59          
+  60          //Characters representing each location's status
+  61          // ' ' means Not taken
+  62          // 'O' means taken by O
+  63          // 'X' means taken by X
+  64          
+  65          //First 3 characters are top row left->right
+  66          //Next 3 are middle row left->right
+  67          //Last 3 are bottom row left->right
+  68          char gameStatus[10];
+  69          
+  70          //Boolean variable to track if the game should continue
+  71          bit gameEnd;
+  72          
+  73          // boolean to determine if introduction music is done
+  74          bit introduction_flag;
+  75          
+  76          
+  77          
+  78          //Loops through and checks each button
+  79          //Returns (as a number) the location of the first
+  80          //button pressed
+  81          // 0 is returned if no button is pressed
+  82          
+  83          //Location grid layout
+  84          
+  85          //------Top------//
+  86          // 1  |  2  |  3 //
+  87          // 4  |  5  |  6 //
+  88          // 7  |  8  |  9 //
+  89          //-----Bottom----//
+  90          
+  91          char msg_i = 0;
+  92          
+  93          
+  94          unsigned char input = 0x00;//The input from a specific polling sequence
+  95          
+  96          
+  97          char welcome_msg[] = "HELLO!\n\0";
+  98          
+  99          
+ 100          
+ 101          int iterator = 0;
+ 102          
+ 103          char current_player = 'X';
+ 104          
+ 105          
+ 106          
+ 107          char game_output[] = " | | "; // used in printGameStatus
+ 108          char line[] = "-----";       // used in printGameStatus
+ 109          char row;                     // used in printGameStatus
+ 110          char col;                    // used in printGameStatus
+ 111          
+ 112          bit AI_flag = 1;
+ 113          
+ 114          
+ 115          
+ 116          
+ 117          
+C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:46:38 PAGE 3   
+
+ 118          
+ 119          
+ 120          
+ 121          
+ 122          
+ 123          
+ 124          
+ 125          
+ 126          // ----------------------------
+ 127          // Connor's variables start
+ 128          // ----------------------------
+ 129          
+ 130          //-----------------------
+ 131          
+ 132          //start									1		2			3			4		5			6		7		8			9			10		11			12			13		14		15			16			17***lastone		18			19		   
              -20		21			22			23			24		25			26			27		28			29			30			31		32			33
-  57          unsigned char song_main_buzzer1[]   = {NOTE_REST, NOTE_A6, NOTE_REST, NOTE_A6, NOTE_REST, NOTE_G6, NOTE_RE
+ 133          unsigned char song_main_buzzer1[]   = {NOTE_REST, NOTE_A6, NOTE_REST, NOTE_A6, NOTE_REST, NOTE_G6, NOTE_RE
              -ST, NOTE_G6, NOTE_REST, NOTE_A6,   NOTE_REST, NOTE_A6, NOTE_C7,   NOTE_REST, NOTE_A6, NOTE_REST, NOTE_REST, NOTE_G6,  NO
              -TE_REST, NOTE_A5,  NOTE_REST, NOTE_F5,  NOTE_REST, NOTE_D5,    NOTE_F5   ,NOTE_REST, NOTE_G5,  NOTE_REST, NOTE_F5,    NO
              -TE_REST, NOTE_REST, NOTE_F5,  NOTE_REST, NOTE_REST };
-  58          //unsigned char song_main_buzzer2[] = {NOTE_E4, NOTE_REST, NOTE_E4, NOTE_REST, NOTE_E4, NOTE_REST, NOTE_E4
+ 134          //unsigned char song_main_buzzer2[] = {NOTE_E4, NOTE_REST, NOTE_E4, NOTE_REST, NOTE_E4, NOTE_REST, NOTE_E4
              -, NOTE_REST, NOTE_E4,   NOTE_REST, NOTE_E4, NOTE_G4,   NOTE_REST, NOTE_E4, NOTE_REST, NOTE_REST, NOTE_D4,  NOTE_REST, NO
              -TE_D4,  NOTE_REST, NOTE_D4,  NOTE_REST, NOTE_AS3,   NOTE_REST };
-  59          //unsigned char song_main_buzzer3[] = {NOTE_C4, NOTE_REST, NOTE_C4, NOTE_REST, NOTE_G4, NOTE_REST, NOTE_C4
+ 135          //unsigned char song_main_buzzer3[] = {NOTE_C4, NOTE_REST, NOTE_C4, NOTE_REST, NOTE_G4, NOTE_REST, NOTE_C4
              -, NOTE_REST, NOTE_C4,   NOTE_REST, NOTE_C4, NOTE_E4,   NOTE_REST, NOTE_C4, NOTE_G4,   NOTE_REST, NOTE_AS3, NOTE_REST, NO
              -TE_AS3, NOTE_REST, NOTE_AS3, NOTE_REST, NOTE_REST,  NOTE_REST };
-  60          //unsigned char song_main_buzzer4[] = {NOTE_C3, NOTE_REST, NOTE_A2, NOTE_REST, NOTE_G2, NOTE_REST, NOTE_A2
+ 136          //unsigned char song_main_buzzer4[] = {NOTE_C3, NOTE_REST, NOTE_A2, NOTE_REST, NOTE_G2, NOTE_REST, NOTE_A2
              -, NOTE_C3,   NOTE_REST, NOTE_C3,   NOTE_A2, NOTE_REST, NOTE_C3,   NOTE_G2, NOTE_A2,   NOTE_F4,   NOTE_AS2, NOTE_REST, NO
              -TE_G2,  NOTE_REST, NOTE_F2,  NOTE_REST, NOTE_G2,    NOTE_AS2  };
-  61          //unsigned char song_main_duration[]= {DUR_8, DUR_8, DUR_8,   DUR_8,     DUR_8,   DUR_8,     DUR_8,   DUR_
+ 137          //unsigned char song_main_duration[]= {DUR_8, DUR_8, DUR_8,   DUR_8,     DUR_8,   DUR_8,     DUR_8,   DUR_
              -8,     DUR_8,   DUR_8,     DUR_8,     DUR_8,     DUR_8,   DUR_8,     DUR_8,     DUR_8,   DUR_8,     DUR_8,     DUR_8,   
              - DUR_8,     DUR_8,    DUR_8,     DUR_8,    DUR_8,     DUR_8,      DUR_8     ,DUR_8,     DUR_8,    DUR_8,     DUR_8,     
              - DUR_8,     DUR_8,     DUR_8,    DUR_8,     DUR_8     };
-  62          //unsigned char song_main_duration[] = {DUR_8};
-  63          // first ending
-  64          //unsigned char song_ending1_buzzer1[] = {NOTE_REST, NOTE_G4,  NOTE_REST, NOTE_F4,    NOTE_REST, NOTE_REST
+ 138          //unsigned char song_main_duration[] = {DUR_8};
+ 139          // first ending
+ 140          //unsigned char song_ending1_buzzer1[] = {NOTE_REST, NOTE_G4,  NOTE_REST, NOTE_F4,    NOTE_REST, NOTE_REST
              -, NOTE_F4,  NOTE_REST, NOTE_REST };
-  65          //unsigned char song_ending1_buzzer2[] = {NOTE_REST, NOTE_D4,  NOTE_REST, NOTE_D4,    NOTE_REST, NOTE_REST
+ 141          //unsigned char song_ending1_buzzer2[] = {NOTE_REST, NOTE_D4,  NOTE_REST, NOTE_D4,    NOTE_REST, NOTE_REST
              -, NOTE_D4,  NOTE_REST, NOTE_REST };
-  66          //unsigned char song_ending1_buzzer3[] = {NOTE_REST, NOTE_AS3, NOTE_REST, NOTE_AS3,   NOTE_REST, NOTE_G4, 
+ 142          //unsigned char song_ending1_buzzer3[] = {NOTE_REST, NOTE_AS3, NOTE_REST, NOTE_AS3,   NOTE_REST, NOTE_G4, 
              -  NOTE_AS3, NOTE_REST, NOTE_REST };
-  67          //unsigned char song_ending1_buzzer4[] = {NOTE_REST, NOTE_AS2, NOTE_G2,   NOTE_REST,  NOTE_F2,   NOTE_F2, 
+ 143          //unsigned char song_ending1_buzzer4[] = {NOTE_REST, NOTE_AS2, NOTE_G2,   NOTE_REST,  NOTE_F2,   NOTE_F2, 
              -  NOTE_G2,  NOTE_F2,   NOTE_REST };
-  68          //unsigned char song_ending1_duration[]= {DUR_8,     DUR_8,    DUR_8,     DUR_8,      DUR_8,     DUR_8,   
+ 144          //unsigned char song_ending1_duration[]= {DUR_8,     DUR_8,    DUR_8,     DUR_8,      DUR_8,     DUR_8,   
              -  DUR_8,    DUR_8,     DUR_8     };
-  69          
-  70          
-  71          
-  72          sbit SPKR = P1^7;            // port used for speaker
-  73          
-  74          // Temporary variables
-  75          sbit led1 = P2^4;
-  76          sbit led2 = P0^5;
-  77          
-  78          unsigned char note_MCs;
-  79          unsigned char note_its;
-  80          unsigned char duration;
-  81          
-  82          
-  83          unsigned char nbc_notes[] =     {NOTE_G5, NOTE_E5, NOTE_C4};
-  84          unsigned char nbc_durations[] = {32, 32, 64};
-  85          
-  86          unsigned char note_num = 0;
-  87          unsigned char num_notes = 32;//23; //24 for main_buzzer
-  88          
-  89          
-  90          // note_ptr points to the array containing the number n that corresponds to
-  91          // 111*n = number of machine cycles per oscillation for a given note
-  92          char idata *note_ptr;
-  93          
-  94          // duration_ptr points to the array containing the number n that corresponds to
-  95          // (n / 32)th note when using a given tempo
-  96          char idata *duration_ptr;
-  97          
-  98          char mod;
-  99          char rest_played;
-C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:36:45 PAGE 3   
-
- 100          
- 101          bit introduction_flag = 1;
- 102          bit nbc_flag = 0;
- 103          
- 104          void restart_timer1 ( );
- 105          void play_sound_byte ( )
- 106          {
- 107   1        // set the music to be the NBC clip
- 108   1        //note_ptr =     nbc_notes;
- 109   1        //duration_ptr = nbc_durations;
- 110   1      
- 111   1        // ------------------------------------------------------
- 112   1        // set up the timers
- 113   1        // ------------------------------------------------------
- 114   1      
- 115   1        // Timer 0 ==> 8-bit auto-reload
- 116   1        // Timer 1 ==> 16-bit mode
- 117   1        TMOD = 0x12;
- 118   1      
- 119   1        // Enable Timer 0, Timer 1 interrupts
- 120   1        // Disable Serial interrupts
- 121   1        IEN0 |= 0x8A;
- 122   1      
- 123   1        // Prioritize Timer 1 over Timer 0
- 124   1        IP0 = 0x08;
- 125   1      
- 126   1        // Timer 0 will raise a flag based on the note frequency
- 127   1        TH0 = FREQUENCY_DIVISOR;
- 128   1        TL0 = FREQUENCY_DIVISOR;
- 129   1      
- 130   1        // Timer 1 will raise a flag every time the duration of a 32nd note is played
- 131   1        TH1 = DURATION_32_NOTE >> 8;
- 132   1        TL1 = DURATION_32_NOTE;
- 133   1      
- 134   1        mod = 1;
- 135   1        rest_played = 0;
- 136   1      
- 137   1        duration = 0;  // set for 8 32nd notes
- 138   1        note_its = 0;  // reset of count of iterations (to 111)
- 139   1      
- 140   1      
- 141   1        TF1 = 1; // start timer 1
- 142   1      
- 143   1        /*if (note_ptr != 1)
- 144   1        {
- 145   1          TR0 = 1;
- 146   1        }*/
- 147   1      
- 148   1        SPKR = 0;
- 149   1        while(introduction_flag);
- 150   1      }
- 151          
- 152          
+ 145          
+ 146          
+ 147          
+ 148          sbit SPKR = P1^7;            // port used for speaker
+ 149          
+ 150          // Temporary variables
+ 151          sbit led1 = P2^4;
+ 152          sbit led2 = P0^5;
  153          
- 154          
- 155          
- 156          
- 157          // The Timer1 ISR is responsible for providing the duration
- 158          // of the note being played
- 159          
- 160          void timer1_isr ( ) interrupt TIMER_1
- 161          {
-C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:36:45 PAGE 4   
+ 154          unsigned char note_MCs;
+ 155          unsigned char note_its;
+ 156          unsigned char duration;
+ 157          
+ 158          
+ 159          unsigned char nbc_notes[] =     {NOTE_G5, NOTE_E5, NOTE_C4};
+ 160          unsigned char nbc_durations[] = {32, 32, 64};
+ 161          
+C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:46:38 PAGE 4   
 
- 162   1        // turn off the timer while working
- 163   1        TR1 = 0;
- 164   1      
- 165   1        // if we have not yet reached the note's full duration
- 166   1        length = DUR_8;
- 167   1        if ( nbc_flag )
- 168   1        {
- 169   2          length = duration_ptr[note_num];
- 170   2        }
- 171   1        
- 172   1        if ( duration != length )
- 173   1        {    
- 174   2          // if we are using half time
- 175   2          if (HALF_TIME_BOOL)
- 176   2          {
- 177   3            // every other trigger, we increment duration
- 178   3            mod = (++mod) % 10;
- 179   3            if ( mod != 9 )
- 180   3            {
- 181   4              duration++;
- 182   4            }
- 183   3          }
- 184   2          // otherwise
- 185   2          else
- 186   2          {
- 187   3            // always increment duration
- 188   3            duration++;
- 189   3          }
- 190   2      
- 191   2      	restart_timer1();
- 192   2        }
- 193   1      
- 194   1        // if we have reached the note's full duration
- 195   1         else
- 196   1        {
- 197   2          // stop playing the current note
- 198   2          TR0 = 0;
- 199   2          TF0 = 0;
- 200   2      	note_its = 0;
- 201   2          SPKR = 0;
- 202   2      
- 203   2          // make sure we have rested adequately
- 204   2          if ( rest_played != 5 )
- 205   2          {
- 206   3            // acknowledge that this code has been executed
- 207   3            rest_played++;
- 208   3      
- 209   3            // wait the smallest possible note length
- 210   3            restart_timer1();
- 211   3            return;
- 212   3          }
- 213   2      
- 214   2          //no matter what
- 215   2          
- 216   2          // reset the duration
- 217   2          duration = 0;
- 218   2      
- 219   2          // reset the mod, so we don't get left out if in half time
- 220   2          mod = 1;
- 221   2       
- 222   2          // if we are at the last note, we light the LED
- 223   2          if ( note_num == num_notes )
-C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:36:45 PAGE 5   
+ 162          unsigned char note_num = 0;
+ 163          unsigned char num_notes = 32;//23; //24 for main_buzzer
+ 164          
+ 165          
+ 166          // note_ptr points to the array containing the number n that corresponds to
+ 167          // 111*n = number of machine cycles per oscillation for a given note
+ 168          char idata *note_ptr;
+ 169          
+ 170          // duration_ptr points to the array containing the number n that corresponds to
+ 171          // (n / 32)th note when using a given tempo
+ 172          char idata *duration_ptr;
+ 173          
+ 174          char mod;
+ 175          char rest_played;
+ 176          
+ 177          bit introduction_flag = 1;
+ 178          bit nbc_flag = 0;
+ 179          
+ 180          
+ 181          void shortDelay()
+ 182          {
+ 183   1        for (pulse_counter = 0; pulse_counter < 255; pulse_counter++);
+ 184   1      }
+ 185          
+ 186          void play_sound_byte ( )
+ 187          {
+ 188   1        // set the music to be the NBC clip
+ 189   1        //note_ptr =     nbc_notes;
+ 190   1        //duration_ptr = nbc_durations;
+ 191   1      
+ 192   1        // ------------------------------------------------------
+ 193   1        // set up the timers
+ 194   1        // ------------------------------------------------------
+ 195   1      
+ 196   1        // Timer 0 ==> 8-bit auto-reload
+ 197   1        // Timer 1 ==> 16-bit mode
+ 198   1        TMOD = 0x12;
+ 199   1      
+ 200   1        // Enable Timer 0, Timer 1 interrupts
+ 201   1        // Disable Serial interrupts
+ 202   1        IEN0 |= 0x8A;
+ 203   1      
+ 204   1        // Prioritize Timer 1 over Timer 0
+ 205   1        IP0 = 0x08;
+ 206   1      
+ 207   1        // Timer 0 will raise a flag based on the note frequency
+ 208   1        TH0 = FREQUENCY_DIVISOR;
+ 209   1        TL0 = FREQUENCY_DIVISOR;
+ 210   1      
+ 211   1        // Timer 1 will raise a flag every time the duration of a 32nd note is played
+ 212   1        TH1 = DURATION_32_NOTE >> 8;
+ 213   1        TL1 = DURATION_32_NOTE;
+ 214   1      
+ 215   1        mod = 1;
+ 216   1        rest_played = 0;
+ 217   1      
+ 218   1        duration = 0;  // set for 8 32nd notes
+ 219   1        note_its = 0;  // reset of count of iterations (to 111)
+ 220   1      
+ 221   1      
+ 222   1        TF1 = 1; // start timer 1
+ 223   1      
+C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:46:38 PAGE 5   
 
- 224   2          {
- 225   3            introduction_flag = 0;
- 226   3            note_ptr = nbc_notes;
- 227   3            duration_ptr = nbc_durations;
- 228   3            num_notes = 3;
- 229   3            note_num = 0;
- 230   3          }
- 231   2      
- 232   2          // otherwise, if there are still notes in the song
- 233   2          else
- 234   2          {
- 235   3            // move on to the next note
- 236   3            note_num++;
- 237   3      
- 238   3            // if the note is stored as 0, do not worry about oscillating
- 239   3            // b/c it is a rest!
- 240   3            if ( note_ptr[note_num] == 0 )
- 241   3            {
- 242   4              // turn off timer 0
- 243   4              TR0 = 0;
- 244   4            }
- 245   3      
- 246   3            // otherwise, the note is real... we must worry
- 247   3            else
- 248   3            {
- 249   4              // set the frequency of the note by pushing to TH0
- 250   4              // turn on the timer 0;
- 251   4              TH0 = note_ptr[note_num];
- 252   4              TL0 = TH0;
- 253   4              TR0 = 1;
- 254   4            }
- 255   3      
- 256   3            // ensure that since there are more notes, we are still timing their
- 257   3            // durations
- 258   3            TR1 = 1;
- 259   3      
- 260   3            // notice that the rest for the other note has not yet been played
- 261   3            // so we must reset this variable
- 262   3            rest_played = 0;
+ 224   1        /*if (note_ptr != 1)
+ 225   1        {
+ 226   1          TR0 = 1;
+ 227   1        }*/
+ 228   1      
+ 229   1        SPKR = 0;
+ 230   1        while(introduction_flag);
+ 231   1      }
+ 232          
+ 233          
+ 234          
+ 235          
+ 236          
+ 237          // The Timer1 ISR is responsible for providing the duration
+ 238          // of the note being played
+ 239          
+ 240          void timer1_isr ( ) interrupt TIMER_1
+ 241          {
+ 242   1        // turn off the timer while working
+ 243   1        TR1 = 0;
+ 244   1      
+ 245   1        // if we have not yet reached the note's full duration
+ 246   1        length = DUR_8;
+ 247   1        if ( nbc_flag )
+ 248   1        {
+ 249   2          length = duration_ptr[note_num];
+ 250   2        }
+ 251   1        
+ 252   1        if ( duration != length )
+ 253   1        {    
+ 254   2          // if we are using half time
+ 255   2          if (HALF_TIME_BOOL)
+ 256   2          {
+ 257   3            // every other trigger, we increment duration
+ 258   3            mod = (++mod) % 10;
+ 259   3            if ( mod != 9 )
+ 260   3            {
+ 261   4              duration++;
+ 262   4            }
  263   3          }
- 264   2        }
- 265   1      }
- 266          
- 267          
- 268          void restart_timer1 ( )
- 269          {
- 270   1        TH1 = DURATION_32_NOTE >> 8;
- 271   1        TL1 = DURATION_32_NOTE;
- 272   1        TR1 = 1;
- 273   1      }
- 274          
- 275          // --------------------
- 276          // Connors variables end
- 277          // --------------------
- 278          
- 279          
- 280          
- 281          
- 282          //Characters representing each location's status
- 283          // ' ' means Not taken
- 284          // 'O' means taken by O
- 285          // 'X' means taken by X
-C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:36:45 PAGE 6   
+ 264   2          // otherwise
+ 265   2          else
+ 266   2          {
+ 267   3            // always increment duration
+ 268   3            duration++;
+ 269   3          }
+ 270   2      
+ 271   2      	restart_timer1();
+ 272   2        }
+ 273   1      
+ 274   1        // if we have reached the note's full duration
+ 275   1         else
+ 276   1        {
+ 277   2          // stop playing the current note
+ 278   2          TR0 = 0;
+ 279   2          TF0 = 0;
+ 280   2      	note_its = 0;
+ 281   2          SPKR = 0;
+ 282   2      
+ 283   2          // make sure we have rested adequately
+ 284   2          if ( rest_played != 5 )
+ 285   2          {
+C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:46:38 PAGE 6   
 
- 286          
- 287          //First 3 characters are top row left->right
- 288          //Next 3 are middle row left->right
- 289          //Last 3 are bottom row left->right
- 290          char gameStatus[10];
- 291          
- 292          //Boolean variable to track if the game should continue
- 293          bit gameEnd;
- 294          
- 295          // boolean to determine if introduction music is done
- 296          bit introduction_flag;
- 297          
- 298          //Handles 1-time initialization code
- 299          void StartGame();
- 300          
- 301          //Loops through and checks each button
- 302          //Returns (as a number) the location of the first
- 303          //button pressed
- 304          // 0 is returned if no button is pressed
- 305          
- 306          //Location grid layout
- 307          
- 308          //------Top------//
- 309          // 1  |  2  |  3 //
- 310          // 4  |  5  |  6 //
- 311          // 7  |  8  |  9 //
- 312          //-----Bottom----//
- 313          char PollButtons();
- 314          
- 315          bit CheckWin();
- 316          
- 317          
- 318          
- 319          /*
- 320            timer 0 interrupt service routine
- 321            when introduction_flag == 0:
- 322              ...
- 323            when introduction_flag == 1:
- 324          */
- 325          void display ( ) interrupt TIMER_0
- 326          {
- 327   1      
- 328   1        if (introduction_flag)
- 329   1        {
- 330   2           /*
- 331   2           This function oscillates the speaker when the flag is raised
- 332   2           the FREQUENCY_DIVISOR times. Since the flag is based on the timer
- 333   2           which triggers based on what the current note is, we can vary the
- 334   2           pitch by changing the timer amount. When we oscillate the speaker,
- 335   2           we also reset note_its so it can start counting again.
- 336   2          */
- 337   2      
- 338   2          // if triggered FREQUENCY_DIVISOR times
- 339   2          if (note_its == note_ptr[note_num])
- 340   2          {
- 341   3            // oscillate speaker and reset count
- 342   3            SPKR = ~SPKR;
- 343   3            note_its = 0;
- 344   3          }
- 345   2      
- 346   2          // otherwise, mark it and wait until reflagged
- 347   2          else
-C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:36:45 PAGE 7   
+ 286   3            // acknowledge that this code has been executed
+ 287   3            rest_played++;
+ 288   3      
+ 289   3            // wait the smallest possible note length
+ 290   3            restart_timer1();
+ 291   3            return;
+ 292   3          }
+ 293   2      
+ 294   2          //no matter what
+ 295   2          
+ 296   2          // reset the duration
+ 297   2          duration = 0;
+ 298   2      
+ 299   2          // reset the mod, so we don't get left out if in half time
+ 300   2          mod = 1;
+ 301   2       
+ 302   2          // if we are at the last note, we light the LED
+ 303   2          if ( note_num == num_notes )
+ 304   2          {
+ 305   3            introduction_flag = 0;
+ 306   3            note_ptr = nbc_notes;
+ 307   3            duration_ptr = nbc_durations;
+ 308   3            num_notes = 3;
+ 309   3            note_num = 0;
+ 310   3          }
+ 311   2      
+ 312   2          // otherwise, if there are still notes in the song
+ 313   2          else
+ 314   2          {
+ 315   3            // move on to the next note
+ 316   3            note_num++;
+ 317   3      
+ 318   3            // if the note is stored as 0, do not worry about oscillating
+ 319   3            // b/c it is a rest!
+ 320   3            if ( note_ptr[note_num] == 0 )
+ 321   3            {
+ 322   4              // turn off timer 0
+ 323   4              TR0 = 0;
+ 324   4            }
+ 325   3      
+ 326   3            // otherwise, the note is real... we must worry
+ 327   3            else
+ 328   3            {
+ 329   4              // set the frequency of the note by pushing to TH0
+ 330   4              // turn on the timer 0;
+ 331   4              TH0 = note_ptr[note_num];
+ 332   4              TL0 = TH0;
+ 333   4              TR0 = 1;
+ 334   4            }
+ 335   3      
+ 336   3            // ensure that since there are more notes, we are still timing their
+ 337   3            // durations
+ 338   3            TR1 = 1;
+ 339   3      
+ 340   3            // notice that the rest for the other note has not yet been played
+ 341   3            // so we must reset this variable
+ 342   3            rest_played = 0;
+ 343   3          }
+ 344   2        }
+ 345   1      }
+ 346          
+ 347          
+C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:46:38 PAGE 7   
 
- 348   2          {
- 349   3            note_its++;
- 350   3          }
- 351   2        }
- 352   1        else
- 353   1        {
- 354   2          TR0 = 0;
- 355   2          if(gameStatus[0] == 'X')
- 356   2      	  lTopLeft = 0;
- 357   2      	else if(gameStatus[0] == 'O')
- 358   2      	  lTopLeft = ~lTopLeft;
- 359   2      	if(gameStatus[1] == 'X')
- 360   2      	  lTopMid = 0;
- 361   2      	else if(gameStatus[1] == 'O')
- 362   2      	  lTopMid = ~lTopMid;
- 363   2      	if(gameStatus[2] == 'X')
- 364   2      	  lTopRight = 0;
- 365   2      	else if(gameStatus[2] == 'O')
- 366   2      	  lTopRight = ~lTopRight;
- 367   2      	if(gameStatus[3] == 'X')
- 368   2      	  lMidLeft = 0;
- 369   2          else if(gameStatus[3] == 'O')
- 370   2      	  lMidLeft = ~lMidLeft;
- 371   2      	if(gameStatus[4] == 'X')
- 372   2      	  lMidMid = 0;
- 373   2      	else if(gameStatus[4] == 'O')
- 374   2      	  lMidMid = ~lMidMid;
- 375   2      	if(gameStatus[5] == 'X')
- 376   2      	  lMidRight = 0;
- 377   2      	else if(gameStatus[5] == 'O')
- 378   2      	  lMidRight = ~lMidRight;
- 379   2      	if(gameStatus[6] == 'X')
- 380   2      	  lBotLeft = 0;
- 381   2      	else if(gameStatus[6] == 'O')
- 382   2      	  lBotLeft = ~lBotLeft;
- 383   2      	if(gameStatus[7] == 'X')
- 384   2      	  lBotMid = 0;
- 385   2      	else if(gameStatus[7] == 'O')
- 386   2      	  lBotMid = ~lBotMid;
- 387   2      	if(gameStatus[8] == 'X')
- 388   2      	  lBotRight = 0;
- 389   2      	else if(gameStatus[8] == 'O')
- 390   2      	  lBotRight = ~lBotRight;
- 391   2      	TH0= LED_FLASH_TIME_HIGH;
- 392   2      	TL0 = LED_FLASH_TIME_LOW;
- 393   2      	TR0 = 1;
- 394   2        }
- 395   1        return;
- 396   1      }
- 397          
- 398          unsigned char input = 0x00;//The input from a specific polling sequence
- 399          
- 400          
- 401          char welcome_msg[] = "HELLO!\n\0";
- 402          
- 403          
- 404          
- 405          int iterator = 0;
- 406          
- 407          char current_player = 'X';
- 408          
- 409          
-C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:36:45 PAGE 8   
+ 348          void restart_timer1 ( )
+ 349          {
+ 350   1        TH1 = DURATION_32_NOTE >> 8;
+ 351   1        TL1 = DURATION_32_NOTE;
+ 352   1        TR1 = 1;
+ 353   1      }
+ 354          
+ 355          
+ 356          /*
+ 357            timer 0 interrupt service routine
+ 358            when introduction_flag == 0:
+ 359              ...
+ 360            when introduction_flag == 1:
+ 361          */
+ 362          void display ( ) interrupt TIMER_0
+ 363          {
+ 364   1      
+ 365   1        if (introduction_flag)
+ 366   1        {
+ 367   2           /*
+ 368   2           This function oscillates the speaker when the flag is raised
+ 369   2           the FREQUENCY_DIVISOR times. Since the flag is based on the timer
+ 370   2           which triggers based on what the current note is, we can vary the
+ 371   2           pitch by changing the timer amount. When we oscillate the speaker,
+ 372   2           we also reset note_its so it can start counting again.
+ 373   2          */
+ 374   2      
+ 375   2          // if triggered FREQUENCY_DIVISOR times
+ 376   2          if (note_its == note_ptr[note_num])
+ 377   2          {
+ 378   3            // oscillate speaker and reset count
+ 379   3            SPKR = ~SPKR;
+ 380   3            note_its = 0;
+ 381   3          }
+ 382   2      
+ 383   2          // otherwise, mark it and wait until reflagged
+ 384   2          else
+ 385   2          {
+ 386   3            note_its++;
+ 387   3          }
+ 388   2        }
+ 389   1        else
+ 390   1        {
+ 391   2          TR0 = 0;
+ 392   2          if(gameStatus[0] == 'X')
+ 393   2      	  lTopLeft = 0;
+ 394   2      	else if(gameStatus[0] == 'O')
+ 395   2      	  lTopLeft = ~lTopLeft;
+ 396   2      	if(gameStatus[1] == 'X')
+ 397   2      	  lTopMid = 0;
+ 398   2      	else if(gameStatus[1] == 'O')
+ 399   2      	  lTopMid = ~lTopMid;
+ 400   2      	if(gameStatus[2] == 'X')
+ 401   2      	  lTopRight = 0;
+ 402   2      	else if(gameStatus[2] == 'O')
+ 403   2      	  lTopRight = ~lTopRight;
+ 404   2      	if(gameStatus[3] == 'X')
+ 405   2      	  lMidLeft = 0;
+ 406   2          else if(gameStatus[3] == 'O')
+ 407   2      	  lMidLeft = ~lMidLeft;
+ 408   2      	if(gameStatus[4] == 'X')
+ 409   2      	  lMidMid = 0;
+C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:46:38 PAGE 8   
 
- 410          
- 411          char game_output[] = " | | "; // used in printGameStatus
- 412          char line[] = "-----";       // used in printGameStatus
- 413          char row;                     // used in printGameStatus
- 414          char col;                    // used in printGameStatus
- 415          
- 416          bit AI_flag = 1;
- 417          
- 418          // ------------------------------------
- 419          // print Game Status
- 420          // ------------------------------------
- 421          void printGameStatus ( )
- 422          {
- 423   1      
- 424   1        for (row = 0; row < 3; row++)
- 425   1        {	  
- 426   2          for (col = 0; col < 3; col++)
- 427   2          {
- 428   3            game_output[col * 2] = gameStatus[3 * row + col];
- 429   3          }
- 430   2          SerialDisplay(game_output);
- 431   2          
- 432   2          if (row != 2)
- 433   2            SerialDisplay(line);
- 434   2        }
- 435   1      
- 436   1        uart_transmit('\n');
- 437   1        //led1 = 1;
- 438   1      }
- 439          
- 440          char ai_input ( )
- 441          {
- 442   1        for (iterator = 0; iterator < 9; iterator++)
- 443   1        {
- 444   2          if (gameStatus[iterator] == ' ')
+ 410   2      	else if(gameStatus[4] == 'O')
+ 411   2      	  lMidMid = ~lMidMid;
+ 412   2      	if(gameStatus[5] == 'X')
+ 413   2      	  lMidRight = 0;
+ 414   2      	else if(gameStatus[5] == 'O')
+ 415   2      	  lMidRight = ~lMidRight;
+ 416   2      	if(gameStatus[6] == 'X')
+ 417   2      	  lBotLeft = 0;
+ 418   2      	else if(gameStatus[6] == 'O')
+ 419   2      	  lBotLeft = ~lBotLeft;
+ 420   2      	if(gameStatus[7] == 'X')
+ 421   2      	  lBotMid = 0;
+ 422   2      	else if(gameStatus[7] == 'O')
+ 423   2      	  lBotMid = ~lBotMid;
+ 424   2      	if(gameStatus[8] == 'X')
+ 425   2      	  lBotRight = 0;
+ 426   2      	else if(gameStatus[8] == 'O')
+ 427   2      	  lBotRight = ~lBotRight;
+ 428   2      	TH0= LED_FLASH_TIME_HIGH;
+ 429   2      	TL0 = LED_FLASH_TIME_LOW;
+ 430   2      	TR0 = 1;
+ 431   2        }
+ 432   1        return;
+ 433   1      }
+ 434          
+ 435          
+ 436          // ------------------------------------
+ 437          // print Game Status
+ 438          // ------------------------------------
+ 439          void printGameStatus ( )
+ 440          {
+ 441   1      
+ 442   1        for (row = 0; row < 3; row++)
+ 443   1        {	  
+ 444   2          for (col = 0; col < 3; col++)
  445   2          {
- 446   3            return (char) iterator + 1;
+ 446   3            game_output[col * 2] = gameStatus[3 * row + col];
  447   3          }
- 448   2        }
- 449   1        return 0;
- 450   1      }
- 451          
- 452          
- 453          void main ( )
- 454          { 
- 455   1        P2M1 = 0x00;
- 456   1        P1M1 = 0x00;
- 457   1        P0M1 = 0x00;
- 458   1        gameStatus[9] = 0; //null terminating char array
- 459   1        //introduction_flag = 1;
- 460   1        note_ptr =     nbc_notes;//song_main_buzzer1;
- 461   1        duration_ptr = nbc_durations;
- 462   1        num_notes = 2;
- 463   1        //play_sound_byte();
- 464   1        introduction_flag = 0;
- 465   1        
- 466   1        //char input = 0; 
- 467   1        EA = 1;  //Enalbes interrupts
- 468   1      
- 469   1        //Setup I/O ports
- 470   1        //TODO - Using bidirectional for now, does serial need something else?
- 471   1        uart_init(); //Initializes serial transmission
-C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:36:45 PAGE 9   
+ 448   2          SerialDisplay(game_output);
+ 449   2          
+ 450   2          if (row != 2)
+ 451   2            SerialDisplay(line);
+ 452   2        }
+ 453   1      
+ 454   1        uart_transmit('\n');
+ 455   1        //led1 = 1;
+ 456   1      }
+ 457          
+ 458          char ai_input ( )
+ 459          {
+ 460   1        for (iterator = 0; iterator < 9; iterator++)
+ 461   1        {
+ 462   2          if (gameStatus[iterator] == ' ')
+ 463   2          {
+ 464   3            return (char) iterator + 1;
+ 465   3          }
+ 466   2        }
+ 467   1        return 0;
+ 468   1      }
+ 469          
+ 470          
+ 471          void main ( )
+C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:46:38 PAGE 9   
 
- 472   1        SerialDisplay(welcome_msg);  //Just for testings
- 473   1      
- 474   1        
- 475   1        //Loop forever until power off
- 476   1        while(1)
- 477   1        {
- 478   2          StartGame();
- 479   2      
- 480   2      
- 481   2      	//Game loop - run until victory
- 482   2      	while(!gameEnd)
- 483   2          {
- 484   3      
- 485   3            //Check for input
- 486   3      	  do
- 487   3      	  {
- 488   4              if (AI_flag && current_player == 'O')
- 489   4              {
- 490   5                input = ai_input();
- 491   5              }
- 492   4              else
- 493   4              {
- 494   5                input = PollButtons();
- 495   5              }
- 496   4      	  }
- 497   3            while(input == 0 || gameStatus[input - 1] != ' ');
- 498   3            
- 499   3            //Record new game input
- 500   3            gameStatus[input - 1] = current_player;
- 501   3      
- 502   3            printGameStatus();
- 503   3      
- 504   3            //Check for win condition
- 505   3            if(CheckWin())
- 506   3      	  {
- 507   4      	    //Victory
- 508   4              gameEnd = 1;
- 509   4              //This is for Jonathan's individual part.
- 510   4      
- 511   4              if (current_player == 'X')  
- 512   4              {
- 513   5                  p1_pulse = 1;
- 514   5                  shortDelay();
- 515   5                  p1_pulse = 0;
- 516   5              }
- 517   4              else
- 518   4              {  
- 519   5                  p2_pulse = 1;
- 520   5                  shortDelay();
- 521   5                  p2_pulse = 0;
- 522   5              }
- 523   4                
- 524   4        	  }
- 525   3      
- 526   3            // switches players
- 527   3      	  if (current_player == 'X')
- 528   3            {
- 529   4              current_player = 'O';
- 530   4            }
- 531   3            else
- 532   3            {
- 533   4              current_player = 'X';
-C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:36:45 PAGE 10  
+ 472          { 
+ 473   1        P2M1 = 0x00;
+ 474   1        P1M1 = 0x00;
+ 475   1        P0M1 = 0x00;
+ 476   1        gameStatus[9] = 0; //null terminating char array
+ 477   1        //introduction_flag = 1;
+ 478   1        note_ptr =     nbc_notes;//song_main_buzzer1;
+ 479   1        duration_ptr = nbc_durations;
+ 480   1        num_notes = 2;
+ 481   1        //play_sound_byte();
+ 482   1        introduction_flag = 0;
+ 483   1        
+ 484   1        //char input = 0; 
+ 485   1        EA = 1;  //Enalbes interrupts
+ 486   1      
+ 487   1        //Setup I/O ports
+ 488   1        //TODO - Using bidirectional for now, does serial need something else?
+ 489   1        uart_init(); //Initializes serial transmission
+ 490   1        SerialDisplay(welcome_msg);  //Just for testings
+ 491   1      
+ 492   1        
+ 493   1        //Loop forever until power off
+ 494   1        while(1)
+ 495   1        {
+ 496   2          StartGame();
+ 497   2      
+ 498   2      
+ 499   2      	//Game loop - run until victory
+ 500   2      	while(!gameEnd)
+ 501   2          {
+ 502   3      
+ 503   3            //Check for input
+ 504   3      	  do
+ 505   3      	  {
+ 506   4              if (AI_flag && current_player == 'O')
+ 507   4              {
+ 508   5                input = ai_input();
+ 509   5              }
+ 510   4              else
+ 511   4              {
+ 512   5                input = PollButtons();
+ 513   5              }
+ 514   4      	  }
+ 515   3            while(input == 0 || gameStatus[input - 1] != ' ');
+ 516   3            
+ 517   3            //Record new game input
+ 518   3            gameStatus[input - 1] = current_player;
+ 519   3      
+ 520   3            printGameStatus();
+ 521   3      
+ 522   3            //Check for win condition
+ 523   3            if(CheckWin())
+ 524   3      	  {
+ 525   4      	    //Victory
+ 526   4              gameEnd = 1;
+ 527   4              //This is for Jonathan's individual part.
+ 528   4      
+ 529   4              if (current_player == 'X')  
+ 530   4              {
+ 531   5                  p1_pulse = 1;
+ 532   5                  shortDelay();
+ 533   5                  p1_pulse = 0;
+C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:46:38 PAGE 10  
 
- 534   4            }
- 535   3      	  //Wait for buttons to release
- 536   3      	  while(PollButtons() != 0);
- 537   3          }
- 538   2          // Game is now over!! Play NBC
- 539   2          introduction_flag = 1;
- 540   2          play_sound_byte();
- 541   2          
- 542   2        }
- 543   1      }
- 544          
- 545          
- 546          
- 547          
- 548          void StartGame(){
- 549   1        char i;
- 550   1        gameEnd = 0;
- 551   1        
- 552   1        for(i = 0; i < 9; i++){
- 553   2          gameStatus[i] = ' ';
- 554   2        }
- 555   1      
- 556   1        //Reset lights
- 557   1        lTopLeft = 1;
- 558   1        lTopMid = 1;
- 559   1        lTopRight = 1;
- 560   1        lMidLeft = 1;
- 561   1        lMidMid = 1;
- 562   1        lMidRight = 1;
- 563   1        lBotLeft = 1;
- 564   1        lBotMid = 1;
- 565   1        lBotRight = 1;
- 566   1      
- 567   1        //Initialize timer 0 for LED calculations
- 568   1        TMOD = 0x01;
- 569   1        TH0 = LED_FLASH_TIME_HIGH;
- 570   1        TL0 = LED_FLASH_TIME_LOW;
- 571   1        IEN0 |= 0x82;
- 572   1        TR0 = 1;
+ 534   5              }
+ 535   4              else
+ 536   4              {  
+ 537   5                  p2_pulse = 1;
+ 538   5                  shortDelay();
+ 539   5                  p2_pulse = 0;
+ 540   5              }
+ 541   4                
+ 542   4        	  }
+ 543   3      
+ 544   3            // switches players
+ 545   3      	  if (current_player == 'X')
+ 546   3            {
+ 547   4              current_player = 'O';
+ 548   4            }
+ 549   3            else
+ 550   3            {
+ 551   4              current_player = 'X';
+ 552   4            }
+ 553   3      	  //Wait for buttons to release
+ 554   3      	  while(PollButtons() != 0);
+ 555   3          }
+ 556   2          // Game is now over!! Play NBC
+ 557   2          introduction_flag = 1;
+ 558   2          play_sound_byte();
+ 559   2          
+ 560   2        }
+ 561   1      }
+ 562          
+ 563          
+ 564          
+ 565          
+ 566          void StartGame(){
+ 567   1        char i;
+ 568   1        gameEnd = 0;
+ 569   1        
+ 570   1        for(i = 0; i < 9; i++){
+ 571   2          gameStatus[i] = ' ';
+ 572   2        }
  573   1      
- 574   1        //Player 1 should always go first
- 575   1        current_player = 'X';
- 576   1      
- 577   1        return;
- 578   1      }
- 579          
- 580          char PollButtons(){
- 581   1        //Loop through and check each button
- 582   1        if(!bTopLeft)
- 583   1          return 1;
- 584   1        if(!bTopMid)
- 585   1          return 2;
- 586   1        if(!bTopRight)
- 587   1          return 3;
- 588   1        if(!bMidLeft)
- 589   1          return 4;
- 590   1        if(!bMidMid)
- 591   1          return 5;
- 592   1        if(!bMidRight)
- 593   1          return 6;
- 594   1        if(!bBotLeft)
- 595   1          return 7;
-C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:36:45 PAGE 11  
+ 574   1        //Reset lights
+ 575   1        lTopLeft = 1;
+ 576   1        lTopMid = 1;
+ 577   1        lTopRight = 1;
+ 578   1        lMidLeft = 1;
+ 579   1        lMidMid = 1;
+ 580   1        lMidRight = 1;
+ 581   1        lBotLeft = 1;
+ 582   1        lBotMid = 1;
+ 583   1        lBotRight = 1;
+ 584   1      
+ 585   1        //Initialize timer 0 for LED calculations
+ 586   1        TMOD = 0x01;
+ 587   1        TH0 = LED_FLASH_TIME_HIGH;
+ 588   1        TL0 = LED_FLASH_TIME_LOW;
+ 589   1        IEN0 |= 0x82;
+ 590   1        TR0 = 1;
+ 591   1      
+ 592   1        //Player 1 should always go first
+ 593   1        current_player = 'X';
+ 594   1      
+ 595   1        return;
+C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:46:38 PAGE 11  
 
- 596   1        if(!bBotMid)
- 597   1          return 8;
- 598   1        if(!bBotRight)
- 599   1          return 9;
- 600   1      
- 601   1        return 0;
- 602   1      }
- 603          
- 604          bit CheckWin(){
- 605   1        //Check winning by rows
- 606   1        int i = 0;
- 607   1        for(i = 0; i < 3; i++)
- 608   1        {
- 609   2          if(gameStatus[3 * i] == gameStatus[(3*i) + 1] &&
- 610   2      	   gameStatus[3 * i] == gameStatus[(3*i) + 2] &&
- 611   2      	   gameStatus[3 * i] != ' ')
- 612   2      	   
- 613   2      	   return 1;
- 614   2        }
- 615   1      
- 616   1        //Check winning by columns
- 617   1        for(i = 0; i < 3; i++)
- 618   1        {
- 619   2          if(gameStatus[i] == gameStatus[i + 3] &&
- 620   2      	   gameStatus[i] == gameStatus[i + 6] &&
- 621   2      	   gameStatus[i] != ' ')
- 622   2      	   
- 623   2      	   return 1;
- 624   2        }
- 625   1      
- 626   1        //Check diagonals
- 627   1        if(gameStatus[0] == gameStatus[4] &&
- 628   1           gameStatus[0] == gameStatus[8] &&
- 629   1      	 gameStatus[0] != ' ')
- 630   1      	 
- 631   1      	 return 1;
- 632   1      
- 633   1        if(gameStatus[2] == gameStatus[4] &&
- 634   1           gameStatus[2] == gameStatus[6] &&
- 635   1      	 gameStatus[2] != ' ')
- 636   1      
- 637   1      	 return 1;
- 638   1      
- 639   1      
- 640   1         return 0;
- 641   1      }
- 642          
- 643          char msg_i = 0;
- 644          void SerialDisplay(char s_msg[])
- 645          {
- 646   1        msg_i = 0;
- 647   1        while (s_msg[msg_i] != '\0')
- 648   1        {
- 649   2          uart_transmit(s_msg[msg_i]);
- 650   2          msg_i++;
- 651   2        }
- 652   1      
- 653   1        for(iterator = 0; iterator < 10000; iterator++);
- 654   1        return;
- 655   1      }
+ 596   1      }
+ 597          
+ 598          char PollButtons(){
+ 599   1        //Loop through and check each button
+ 600   1        if(!bTopLeft)
+ 601   1          return 1;
+ 602   1        if(!bTopMid)
+ 603   1          return 2;
+ 604   1        if(!bTopRight)
+ 605   1          return 3;
+ 606   1        if(!bMidLeft)
+ 607   1          return 4;
+ 608   1        if(!bMidMid)
+ 609   1          return 5;
+ 610   1        if(!bMidRight)
+ 611   1          return 6;
+ 612   1        if(!bBotLeft)
+ 613   1          return 7;
+ 614   1        if(!bBotMid)
+ 615   1          return 8;
+ 616   1        if(!bBotRight)
+ 617   1          return 9;
+ 618   1      
+ 619   1        return 0;
+ 620   1      }
+ 621          
+ 622          bit CheckWin(){
+ 623   1        //Check winning by rows
+ 624   1        int i = 0;
+ 625   1        for(i = 0; i < 3; i++)
+ 626   1        {
+ 627   2          if(gameStatus[3 * i] == gameStatus[(3*i) + 1] &&
+ 628   2      	   gameStatus[3 * i] == gameStatus[(3*i) + 2] &&
+ 629   2      	   gameStatus[3 * i] != ' ')
+ 630   2      	   
+ 631   2      	   return 1;
+ 632   2        }
+ 633   1      
+ 634   1        //Check winning by columns
+ 635   1        for(i = 0; i < 3; i++)
+ 636   1        {
+ 637   2          if(gameStatus[i] == gameStatus[i + 3] &&
+ 638   2      	   gameStatus[i] == gameStatus[i + 6] &&
+ 639   2      	   gameStatus[i] != ' ')
+ 640   2      	   
+ 641   2      	   return 1;
+ 642   2        }
+ 643   1      
+ 644   1        //Check diagonals
+ 645   1        if(gameStatus[0] == gameStatus[4] &&
+ 646   1           gameStatus[0] == gameStatus[8] &&
+ 647   1      	 gameStatus[0] != ' ')
+ 648   1      	 
+ 649   1      	 return 1;
+ 650   1      
+ 651   1        if(gameStatus[2] == gameStatus[4] &&
+ 652   1           gameStatus[2] == gameStatus[6] &&
+ 653   1      	 gameStatus[2] != ' ')
+ 654   1      
+ 655   1      	 return 1;
+ 656   1      
+ 657   1      
+C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:46:38 PAGE 12  
 
+ 658   1         return 0;
+ 659   1      }
+ 660          
+ 661          void SerialDisplay(char s_msg[])
+ 662          {
+ 663   1        msg_i = 0;
+ 664   1        while (s_msg[msg_i] != '\0')
+ 665   1        {
+ 666   2          uart_transmit(s_msg[msg_i]);
+ 667   2          msg_i++;
+ 668   2        }
+ 669   1      
+ 670   1        for(iterator = 0; iterator < 10000; iterator++);
+ 671   1        return;
+ 672   1      }
 
-C51 COMPILER V6.02  MAIN                                                                   05/05/2017 16:36:45 PAGE 12  
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
    CODE SIZE        =    984    ----

@@ -17,7 +17,7 @@ sbit bBotRight = P2^2;
 //to the serial port.
 //Pre:  gameStatus[] must be populated or cleared
 //Post: Current state of the game will be displayed.
-void SerialDisplay(char *);
+
 //Light definitions
 sbit lTopLeft = P2^4;
 sbit lTopMid = P0^5;
@@ -40,11 +40,87 @@ unsigned char pulse_counter;
 
 unsigned char length;
 
+void restart_timer1 ( );
+void SerialDisplay(char *);
+//Handles 1-time initialization code
+void StartGame();
+char PollButtons();
+void play_sound_byte();
+bit CheckWin();
 
-void shortDelay()
-{
-  for (pulse_counter = 0; pulse_counter < 255; pulse_counter++);
-}
+
+
+// --------------------
+// Connors variables end
+// --------------------
+
+
+
+
+//Characters representing each location's status
+// ' ' means Not taken
+// 'O' means taken by O
+// 'X' means taken by X
+
+//First 3 characters are top row left->right
+//Next 3 are middle row left->right
+//Last 3 are bottom row left->right
+char gameStatus[10];
+
+//Boolean variable to track if the game should continue
+bit gameEnd;
+
+// boolean to determine if introduction music is done
+bit introduction_flag;
+
+
+
+//Loops through and checks each button
+//Returns (as a number) the location of the first
+//button pressed
+// 0 is returned if no button is pressed
+
+//Location grid layout
+
+//------Top------//
+// 1  |  2  |  3 //
+// 4  |  5  |  6 //
+// 7  |  8  |  9 //
+//-----Bottom----//
+
+char msg_i = 0;
+
+
+unsigned char input = 0x00;//The input from a specific polling sequence
+
+
+char welcome_msg[] = "HELLO!\n\0";
+
+
+
+int iterator = 0;
+
+char current_player = 'X';
+
+
+
+char game_output[] = " | | "; // used in printGameStatus
+char line[] = "-----";       // used in printGameStatus
+char row;                     // used in printGameStatus
+char col;                    // used in printGameStatus
+
+bit AI_flag = 1;
+
+
+
+
+
+
+
+
+
+
+
 
 
 // ----------------------------
@@ -101,7 +177,12 @@ char rest_played;
 bit introduction_flag = 1;
 bit nbc_flag = 0;
 
-void restart_timer1 ( );
+
+void shortDelay()
+{
+  for (pulse_counter = 0; pulse_counter < 255; pulse_counter++);
+}
+
 void play_sound_byte ( )
 {
   // set the music to be the NBC clip
@@ -148,7 +229,6 @@ void play_sound_byte ( )
   SPKR = 0;
   while(introduction_flag);
 }
-
 
 
 
@@ -272,49 +352,6 @@ void restart_timer1 ( )
   TR1 = 1;
 }
 
-// --------------------
-// Connors variables end
-// --------------------
-
-
-
-
-//Characters representing each location's status
-// ' ' means Not taken
-// 'O' means taken by O
-// 'X' means taken by X
-
-//First 3 characters are top row left->right
-//Next 3 are middle row left->right
-//Last 3 are bottom row left->right
-char gameStatus[10];
-
-//Boolean variable to track if the game should continue
-bit gameEnd;
-
-// boolean to determine if introduction music is done
-bit introduction_flag;
-
-//Handles 1-time initialization code
-void StartGame();
-
-//Loops through and checks each button
-//Returns (as a number) the location of the first
-//button pressed
-// 0 is returned if no button is pressed
-
-//Location grid layout
-
-//------Top------//
-// 1  |  2  |  3 //
-// 4  |  5  |  6 //
-// 7  |  8  |  9 //
-//-----Bottom----//
-char PollButtons();
-
-bit CheckWin();
-
-
 
 /*
   timer 0 interrupt service routine
@@ -395,25 +432,6 @@ void display ( ) interrupt TIMER_0
   return;
 }
 
-unsigned char input = 0x00;//The input from a specific polling sequence
-
-
-char welcome_msg[] = "HELLO!\n\0";
-
-
-
-int iterator = 0;
-
-char current_player = 'X';
-
-
-
-char game_output[] = " | | "; // used in printGameStatus
-char line[] = "-----";       // used in printGameStatus
-char row;                     // used in printGameStatus
-char col;                    // used in printGameStatus
-
-bit AI_flag = 1;
 
 // ------------------------------------
 // print Game Status
@@ -640,7 +658,6 @@ bit CheckWin(){
    return 0;
 }
 
-char msg_i = 0;
 void SerialDisplay(char s_msg[])
 {
   msg_i = 0;
