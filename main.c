@@ -59,8 +59,6 @@ unsigned char song_main_buzzer1[]   = {NOTE_REST, NOTE_A6, NOTE_REST, NOTE_A6, N
 
 
 
-
-
 sbit SPKR = P1^7;            // port used for speaker
 
 // Temporary variables
@@ -142,8 +140,6 @@ void play_sound_byte ( )
   }*/
 
   SPKR = 0;
-  led1 = 1;
-  led2 = 1;
   while(introduction_flag);
 }
 
@@ -216,7 +212,6 @@ void timer1_isr ( ) interrupt TIMER_1
     // if we are at the last note, we light the LED
     if ( note_num == num_notes )
     {
-      led1 = 0;
       introduction_flag = 0;
       note_ptr = nbc_notes;
       duration_ptr = nbc_durations;
@@ -356,7 +351,6 @@ void display ( ) interrupt 1
     }
     else if(gameStatus[i] == 'O')
     {
-
     }
   }*/
   return;
@@ -366,39 +360,64 @@ unsigned char input = 0x00;//The input from a specific polling sequence
 
 
 char welcome_msg[] = "HELLO!\n\0";
-char p1_msg[] = {'1','\0'};
-char p2_msg[] = {'2','\0'};
-char turn_pre[] = {'I','T',' ','I','S',' ','P','\0'};
-char turn_post[] = {'\'','S',' ','T','U','R','N','\n','\0'};
 
 
 
 int iterator = 0;
 
-void main ( )
-{
-  for (iterator = 0; iterator < 9; iterator++)
-  {
-    gameStatus[iterator] = ' ';
-  }
-  gameStatus[9] = 0; //null terminating char array
-  introduction_flag = 1;
-  note_ptr =     song_main_buzzer1;
-  duration_ptr = 0;
-  play_sound_byte();
-  uart_init(); //Initializes serial transmission
+char current_player = 'X';
 
+
+
+char game_output[] = " | | "; // used in printGameStatus
+char line[] = "-----";       // used in printGameStatus
+char row;                     // used in printGameStatus
+char col;                    // used in printGameStatus
+
+
+
+// ------------------------------------
+// print Game Status
+// ------------------------------------
+void printGameStatus ( )
+{
+  //led1 = 0;
+
+  for (row = 0; row < 3; row++)
+  {	  
+    for (col = 0; col < 3; col++)
+    {
+      game_output[2 * col] = gameStatus[row * 3 + col];
+    }
+    
+    //SerialDisplay(game_output);
+//problem area
+	SerialDisplay(line);
+  }
+  //led1 = 1;
+}
+
+
+void main ( )
+{ 
+  P2M1 = 0x00;
+  P1M1 = 0x00;
+  P0M1 = 0x00;
+  gameStatus[9] = 0; //null terminating char array
+  //introduction_flag = 1;
+  note_ptr =     nbc_notes;//song_main_buzzer1;
+  duration_ptr = nbc_durations;
+  num_notes = 2;
+  //play_sound_byte();
+  
   //char input = 0; 
   EA = 1;  //Enalbes interrupts
 
   //Setup I/O ports
   //TODO - Using bidirectional for now, does serial need something else?
-  P2M1 = 0x00;
-  P1M1 = 0x00;
-  P0M1 = 0x00;
+  uart_init(); //Initializes serial transmission
   SerialDisplay(welcome_msg);  //Just for testings
 
-  SerialDisplay(welcome_msg);  //Just for testings
   
   //Loop forever until power off
   while(1)
@@ -410,60 +429,39 @@ void main ( )
 	while(!gameEnd)
     {
 
-      //Player 1 Logic
-	  if(!gameEnd)
-	  {
         //Check for input
-	    do
-	    {
-	      input = PollButtons();
-	    }while(input == 0 || gameStatus[input - 1] != ' ');
-        //Record new game input
-        gameStatus[input - 1] = 'X';
-
-        //Show new display
-	    LEDDisplay();
-
-        SerialDisplay(gameStatus);
-
-	    //Check for win condition
-        if(CheckWin())
-	    {
-	      //Victory
-          gameEnd = 1;
-  	    }
-	  }
-      
-	  if(!gameEnd)
+	  do
 	  {
-	    //Player 2 Logic
-	    //Check for input
-	    do
-	    {
-	      input = PollButtons();
-	    }
-        while(input == 0 || gameStatus[input - 1] != ' ');
-        
-        //Record new game input
-        gameStatus[input - 1] = 'O';
-		
-        SerialDisplay(gameStatus);
-
-        //Show new display
-  	    LEDDisplay();
-
-	    //Check for win condition
-        if(CheckWin())
-	    {
-	      //Victory
-          gameEnd = 1;
-	    }
+	    input = PollButtons();
 	  }
-      SerialDisplay(gameStatus);
+      while(input == 0 || gameStatus[input - 1] != ' ');
+      led1 = 0;
+      //Record new game input
+      gameStatus[input - 1] = current_player;
+
+      //Show new display
+      LEDDisplay();
+
+      printGameStatus();
+
+      //Check for win condition
+      if(CheckWin())
+	  {
+	    //Victory
+        gameEnd = 1;
+  	  }
+      
+	  if (current_player == 'X')
+        current_player = 'O';
+      else
+        current_player = 'X';
+
 	  //Wait for buttons to release
 	  while(PollButtons() != 0);
+	led1 = 0;
     }
-
+	led1 = 1;
+	led2 = 0;
     // Game is now over!! Play NBC
     introduction_flag = 1;
     play_sound_byte();
@@ -472,10 +470,10 @@ void main ( )
 }
 
 void StartGame(){
-  int i;
+  char i;
   gameEnd = 0;
   
-  for(i = 0; i < 9; i++){
+  for(i = 0; i <= 9; i++){
     gameStatus[i] = ' ';
   }
 
@@ -494,9 +492,9 @@ void StartGame(){
   /*TMOD &= 0x10;
   TH1 = LED_FLASH_TIME_HIGH;
   TL1 = LED_FLASH_TIME_LOW;
-
   IEN0 &= 0x82;
   TR0 = 1;*/
+  uart_init(); //Initializes serial transmission
 
   return;
 }
@@ -595,8 +593,6 @@ void SerialDisplay(char s_msg[])
     msg_i++;
   }
 
-  msg_i = 0;
   for(iterator = 0; iterator < 10000; iterator++);
-
   return;
 }
