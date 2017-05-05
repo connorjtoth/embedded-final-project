@@ -29,11 +29,22 @@ sbit lBotLeft = P2^5;
 sbit lBotMid = P0^7;
 sbit lBotRight = P2^6;
 
+//Jonathan Gassner's pins for score counters
+sbit p1_pulse = P1^2;
+sbit p2_pulse = P1^3;
+unsigned char pulse_counter;
 
-#define LED_FLASH_TIME_HIGH = -50000 >> 8
-#define LED_FLASH_TIME_LOW =  -50000
+
+#define LED_FLASH_TIME_HIGH -50000 >> 8
+#define LED_FLASH_TIME_LOW  -50000
 
 unsigned char length;
+
+
+void shortDelay()
+{
+  for (pulse_counter = 0; pulse_counter < 255; pulse_counter++);
+}
 
 
 
@@ -98,11 +109,6 @@ void play_sound_byte ( )
   //note_ptr =     nbc_notes;
   //duration_ptr = nbc_durations;
 
-  // set P0, P1, P2 to be bi-directional
-  P0M1 = 0; 
-  P1M1 = 0;
-  P2M1 = 0;
-
   // ------------------------------------------------------
   // set up the timers
   // ------------------------------------------------------
@@ -112,6 +118,7 @@ void play_sound_byte ( )
   TMOD = 0x12;
 
   // Enable Timer 0, Timer 1 interrupts
+  // Disable Serial interrupts
   IEN0 = 0x8A;
 
   // Prioritize Timer 1 over Timer 0
@@ -141,7 +148,16 @@ void play_sound_byte ( )
 
   SPKR = 0;
   while(introduction_flag);
+
+  //Disable Timer 1,0 interrupts
+  //Enable Serial Interrupt
+  //
+  IEN0 = 0x90;
 }
+
+
+
+
 
 
 // The Timer1 ISR is responsible for providing the duration
@@ -308,14 +324,13 @@ void LEDDisplay();
 
 
 
-
 /*
   timer 0 interrupt service routine
   when introduction_flag == 0:
     ...
   when introduction_flag == 1:
 */
-void display ( ) interrupt 1
+void display ( ) interrupt TIMER_0
 {
 
   if (introduction_flag)
@@ -374,27 +389,40 @@ char line[] = "-----";       // used in printGameStatus
 char row;                     // used in printGameStatus
 char col;                    // used in printGameStatus
 
-
+bit AI_flag = 0;
 
 // ------------------------------------
 // print Game Status
 // ------------------------------------
 void printGameStatus ( )
 {
-  //led1 = 0;
 
   for (row = 0; row < 3; row++)
   {	  
     for (col = 0; col < 3; col++)
     {
-      game_output[2 * col] = gameStatus[row * 3 + col];
+      game_output[col * 2] = gameStatus[3 * row + col];
     }
+    SerialDisplay(game_output);
     
-    //SerialDisplay(game_output);
-//problem area
-	SerialDisplay(line);
+    if (row != 2)
+      SerialDisplay(line);
   }
+
+  uart_transmit('\n');
   //led1 = 1;
+}
+
+char ai_input ( )
+{
+  for (iterator = 0; iterator < 9; iterator++)
+  {
+    if (gameStatus[iterator] == ' ')
+    {
+      return (char) iterator + 1;
+    }
+  }
+  return 0;
 }
 
 
@@ -429,13 +457,20 @@ void main ( )
 	while(!gameEnd)
     {
 
-        //Check for input
+      //Check for input
 	  do
 	  {
-	    input = PollButtons();
+        if (AI_flag && current_player == 'O')
+        {
+          input = ai_input();
+        }
+        else
+        {
+          input = PollButtons();
+        }
 	  }
       while(input == 0 || gameStatus[input - 1] != ' ');
-      led1 = 0;
+      
       //Record new game input
       gameStatus[input - 1] = current_player;
 
@@ -449,19 +484,35 @@ void main ( )
 	  {
 	    //Victory
         gameEnd = 1;
-  	  }
-      
-	  if (current_player == 'X')
-        current_player = 'O';
-      else
-        current_player = 'X';
+        //This is for Jonathan's individual part.
 
+        if (current_player == 'X')  
+        {
+            p1_pulse = 1;
+            shortDelay();
+            p1_pulse = 0;
+        }
+        else
+        {  
+            p2_pulse = 1;
+            shortDelay();
+            p2_pulse = 0;
+        }
+          
+  	  }
+
+      // switches players
+	  if (current_player == 'X')
+      {
+        current_player = 'O';
+      }
+      else
+      {
+        current_player = 'X';
+      }
 	  //Wait for buttons to release
 	  while(PollButtons() != 0);
-	led1 = 0;
     }
-	led1 = 1;
-	led2 = 0;
     // Game is now over!! Play NBC
     introduction_flag = 1;
     play_sound_byte();
@@ -469,11 +520,14 @@ void main ( )
   }
 }
 
+
+
+
 void StartGame(){
   char i;
   gameEnd = 0;
   
-  for(i = 0; i <= 9; i++){
+  for(i = 0; i < 9; i++){
     gameStatus[i] = ' ';
   }
 
@@ -494,7 +548,9 @@ void StartGame(){
   TL1 = LED_FLASH_TIME_LOW;
   IEN0 &= 0x82;
   TR0 = 1;*/
-  uart_init(); //Initializes serial transmission
+
+  //Player 1 should always go first
+  current_player = 'X';
 
   return;
 }
@@ -562,7 +618,8 @@ bit CheckWin(){
    return 0;
 }
 
-void LEDDisplay() {
+void LEDDisplay()
+{
   if(gameStatus[0] != ' ')
   	lTopLeft = 0;
   if(gameStatus[1] != ' ')
