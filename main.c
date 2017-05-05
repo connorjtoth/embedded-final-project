@@ -493,6 +493,18 @@ void main ( )
   //Loop forever until power off
   while(1)
   {
+
+  ////////////////////////////////////////
+  //Ray code for button (mode selection)//
+  ////////////////////////////////////////
+
+    if(!bTopLeft)
+    {
+        AI_flag = 1;
+    }
+
+    while(bTopLeft==0);	  
+    
     StartGame();
 
 
