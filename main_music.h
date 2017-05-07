@@ -103,19 +103,14 @@
 #define DUR_8 8
 
 
-//start                 1   2     3     4   5     6   7   8     9     10    11      12      13    14    15      16      17***lastone    18      19       20   21      22      23      24    25      26      27    28      29      30      31    32      33
-unsigned char song_main_buzzer1[]   = {NOTE_REST, NOTE_A6, NOTE_REST, NOTE_A6, NOTE_REST, NOTE_G6, NOTE_REST, NOTE_G6, NOTE_REST, NOTE_A6,   NOTE_REST, NOTE_A6, NOTE_C7,   NOTE_REST, NOTE_A6, NOTE_REST, NOTE_REST, NOTE_G6,  NOTE_REST, NOTE_A5,  NOTE_REST, NOTE_F5,  NOTE_REST, NOTE_D5,    NOTE_F5   ,NOTE_REST, NOTE_G5,  NOTE_REST, NOTE_F5,    NOTE_REST, NOTE_REST, NOTE_F5,  NOTE_REST, NOTE_REST };
-//unsigned char song_main_buzzer2[] = {NOTE_E4, NOTE_REST, NOTE_E4, NOTE_REST, NOTE_E4, NOTE_REST, NOTE_E4, NOTE_REST, NOTE_E4,   NOTE_REST, NOTE_E4, NOTE_G4,   NOTE_REST, NOTE_E4, NOTE_REST, NOTE_REST, NOTE_D4,  NOTE_REST, NOTE_D4,  NOTE_REST, NOTE_D4,  NOTE_REST, NOTE_AS3,   NOTE_REST };
-//unsigned char song_main_buzzer3[] = {NOTE_C4, NOTE_REST, NOTE_C4, NOTE_REST, NOTE_G4, NOTE_REST, NOTE_C4, NOTE_REST, NOTE_C4,   NOTE_REST, NOTE_C4, NOTE_E4,   NOTE_REST, NOTE_C4, NOTE_G4,   NOTE_REST, NOTE_AS3, NOTE_REST, NOTE_AS3, NOTE_REST, NOTE_AS3, NOTE_REST, NOTE_REST,  NOTE_REST };
-//unsigned char song_main_buzzer4[] = {NOTE_C3, NOTE_REST, NOTE_A2, NOTE_REST, NOTE_G2, NOTE_REST, NOTE_A2, NOTE_C3,   NOTE_REST, NOTE_C3,   NOTE_A2, NOTE_REST, NOTE_C3,   NOTE_G2, NOTE_A2,   NOTE_F4,   NOTE_AS2, NOTE_REST, NOTE_G2,  NOTE_REST, NOTE_F2,  NOTE_REST, NOTE_G2,    NOTE_AS2  };
-//unsigned char song_main_duration[]= {DUR_8, DUR_8, DUR_8,   DUR_8,     DUR_8,   DUR_8,     DUR_8,   DUR_8,     DUR_8,   DUR_8,     DUR_8,     DUR_8,     DUR_8,   DUR_8,     DUR_8,     DUR_8,   DUR_8,     DUR_8,     DUR_8,    DUR_8,     DUR_8,    DUR_8,     DUR_8,    DUR_8,     DUR_8,      DUR_8     ,DUR_8,     DUR_8,    DUR_8,     DUR_8,      DUR_8,     DUR_8,     DUR_8,    DUR_8,     DUR_8     };
-//unsigned char song_main_duration[] = {DUR_8};
-// first ending
-//unsigned char song_ending1_buzzer1[] = {NOTE_REST, NOTE_G4,  NOTE_REST, NOTE_F4,    NOTE_REST, NOTE_REST, NOTE_F4,  NOTE_REST, NOTE_REST };
-//unsigned char song_ending1_buzzer2[] = {NOTE_REST, NOTE_D4,  NOTE_REST, NOTE_D4,    NOTE_REST, NOTE_REST, NOTE_D4,  NOTE_REST, NOTE_REST };
-//unsigned char song_ending1_buzzer3[] = {NOTE_REST, NOTE_AS3, NOTE_REST, NOTE_AS3,   NOTE_REST, NOTE_G4,   NOTE_AS3, NOTE_REST, NOTE_REST };
-//unsigned char song_ending1_buzzer4[] = {NOTE_REST, NOTE_AS2, NOTE_G2,   NOTE_REST,  NOTE_F2,   NOTE_F2,   NOTE_G2,  NOTE_F2,   NOTE_REST };
-//unsigned char song_ending1_duration[]= {DUR_8,     DUR_8,    DUR_8,     DUR_8,      DUR_8,     DUR_8,     DUR_8,    DUR_8,     DUR_8     };
+
+//start                                1          2          3          4          5          6          7          8          9          10         11         12         13         14         15         16         17         18         19         20         21         22         23          24         25       26         27        28         29       30         31         32        33         34
+unsigned char maxine_buzzer1[]      = {NOTE_REST, NOTE_A6,   NOTE_REST, NOTE_A6,   NOTE_REST, NOTE_G6,   NOTE_REST, NOTE_G6,   NOTE_REST, NOTE_A6,   NOTE_REST, NOTE_A6,   NOTE_C7,   NOTE_REST, NOTE_A6,   NOTE_REST, NOTE_REST, NOTE_G6,   NOTE_REST, NOTE_A5,   NOTE_REST, NOTE_F5,   NOTE_REST,  NOTE_D5,   NOTE_F5, NOTE_REST, NOTE_G5,  NOTE_REST, NOTE_F5, NOTE_REST, NOTE_REST, NOTE_F5,  NOTE_REST, NOTE_REST };
+//unsigned char song_main_buzzer2[] = {NOTE_E4,   NOTE_REST, NOTE_E4,   NOTE_REST, NOTE_E4,   NOTE_REST, NOTE_E4,   NOTE_REST, NOTE_E4,   NOTE_REST, NOTE_E4,   NOTE_G4,   NOTE_REST, NOTE_E4,   NOTE_REST, NOTE_REST, NOTE_D4,   NOTE_REST, NOTE_D4,   NOTE_REST, NOTE_D4,   NOTE_REST, NOTE_AS3,   NOTE_REST };
+//unsigned char song_main_buzzer3[] = {NOTE_C4,   NOTE_REST, NOTE_C4,   NOTE_REST, NOTE_G4,   NOTE_REST, NOTE_C4,   NOTE_REST, NOTE_C4,   NOTE_REST, NOTE_C4,   NOTE_E4,   NOTE_REST, NOTE_C4,   NOTE_G4,   NOTE_REST, NOTE_AS3,  NOTE_REST, NOTE_AS3,  NOTE_REST, NOTE_AS3,  NOTE_REST, NOTE_REST,  NOTE_REST };
+//unsigned char song_main_buzzer4[] = {NOTE_C3,   NOTE_REST, NOTE_A2,   NOTE_REST, NOTE_G2,   NOTE_REST, NOTE_A2,   NOTE_C3,   NOTE_REST, NOTE_C3,   NOTE_A2,   NOTE_REST, NOTE_C3,   NOTE_G2,   NOTE_A2,   NOTE_F4,   NOTE_AS2,  NOTE_REST, NOTE_G2,   NOTE_REST, NOTE_F2,   NOTE_REST, NOTE_G2,    NOTE_AS2  };
+//unsigned char song_main_duration[]= {DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,     DUR_8,      DUR_8,     DUR_8,   DUR_8,     DUR_8,    DUR_8,     DUR_8,   DUR_8,     DUR_8,     DUR_8,    DUR_8,     DUR_8     };
+
 
 
 

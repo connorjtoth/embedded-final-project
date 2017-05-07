@@ -2,11 +2,15 @@
 #include "uart.h" //Needed for serial communications
 #include "main_music.h"
 
+
+
 // -----------------------------------------------------------------------------
 // Port and Pin Variable Definitions
 // -----------------------------------------------------------------------------
 
-//Button definitions
+// b<row><column> = <port-pin>
+// Refers to each button built-in to the simon board 
+// and its corresponding port pin based on location
 sbit bTopLeft    = P2^0;
 sbit bTopMid     = P0^1;
 sbit bTopRight   = P2^3;
@@ -17,7 +21,9 @@ sbit bBotLeft    = P2^1;
 sbit bBotMid     = P0^3;
 sbit bBotRight   = P2^2;
 
-//Light definitions
+// l<row><column> = <port-pin>
+// Refers to each LED built-in to the simon board 
+// and its corresponding port pin based on location
 sbit lTopLeft    = P2^4;
 sbit lTopMid     = P0^5;
 sbit lTopRight   = P2^7;
@@ -28,14 +34,16 @@ sbit lBotLeft    = P2^5;
 sbit lBotMid     = P0^7;
 sbit lBotRight   = P2^6;
 
-
-//Jonathan Gassner's pins for score counters
+// p1_pulse and p2_pulse are used for sending
+// high pulses to Arduino UNO used for displaying
+// and counting scores. p1_pulse for Player 'X', 
+// p2_pulse for player 'O'
 sbit p1_pulse    = P1^2;
 sbit p2_pulse    = P1^3;
 
-sbit SPKR        = P1^7; // port used for speaker
-
-
+// Refers to the piezo buzzer built-in to the simon
+// board and its corresponding port pin
+sbit SPKR        = P1^7;
 
 
 
@@ -43,12 +51,22 @@ sbit SPKR        = P1^7; // port used for speaker
 // Constants
 // -----------------------------------------------------------------------------
 
+// these values are maximum wait values for 16-bit
+// timers, and are utilized in the LED flashing function
+// for display 'O' cells on the LED grid.
 #define LED_FLASH_TIME_HIGH -65535 >> 8
 #define LED_FLASH_TIME_LOW  -65535
 
+// This message is sent over serial communication
+// upon initialization of the program to ensure serial
+// communication is working
 char welcome_msg[] = "HELLO!\n\0";
 
-char line[] = "-----";       // used in printGameStatus
+// This null-terminating character array is used for
+// displaying the board. (it is the horizontal divider
+// for rows) and is used in printGameStatus
+char line[] = "-----";
+
 
 
 // -----------------------------------------------------------------------------
@@ -61,9 +79,10 @@ unsigned int iterator;
 unsigned char char_iterator;
 
 
-
-
+// length is used in the music playing subroutine and
+// is the upper limit of the total note length
 unsigned char length;
+
 
 unsigned char pulse_counter;
 
@@ -73,63 +92,114 @@ unsigned char pulse_counter;
 // 'O' means taken by O
 // 'X' means taken by X
 
-//First 3 characters are top row left->right
-//Next 3 are middle row left->right
-//Last 3 are bottom row left->right
+/* 
+  Given a tic-tac-toe board,
+
+    0 | 1 | 2 
+   -----------
+    3 | 4 | 5
+   -----------
+    6 | 7 | 8
+
+  the values in each cell correspond to its
+  index in gameStatus. gameStatus has a '\0'
+  at its end in the event a programmer wants
+  to output gameStatus for debugging purposes.
+*/
 char gameStatus[10];
 
-//Boolean variable to track if the game should continue
+
+// boolean flag used in main program for determining
+// when the game has concluded
 bit gameEnd;
+
 
 // boolean to determine if introduction music is done
 bit introduction_flag;
 
 
+// char for iterating through each character in a
+// null-terminating character array in SerialDisplay
+// subroutine
 char msg_i = 0;
 
 
-unsigned char input = 0x00;//The input from a specific polling sequence
+// char to store input from a specific polling sequence
+// returned from under the PollButtons function
+unsigned char input = 0x00;
 
 
-
+// char that cycles each game turn between 'X' and
+// 'O' representing the player whose piece will be
+// played next
 char current_player = 'X';
 
+// game_output is a null-terminating character array
+// that provides a nicely formatted row of tic-tac-toe
+// used in printGameStatus
+char game_output[] = " | | ";
 
+// row is used to iterate through each row of the board
+// in printGameStatus
+char row;
 
-char game_output[] = " | | "; // used in printGameStatus
-char row;                     // used in printGameStatus
-char col;                    // used in printGameStatus
+// col is used to iterate through each column of each row
+// of the board in printGameStatus
+char col;
 
+// when AI_flag is 1, then a computer plays 'O's and
+// human plays 'X's. Otherwise, humans control both 'O's
+// and 'X's
 bit AI_flag = 1;
 
-
-
-
-
-unsigned char note_MCs;
+// note_its counts the number of times the timer controlling
+// frequency oscillation for notes has been triggered. When it 
+// reaches FREQUENCY_DIVISOR, it resets to 0.
 unsigned char note_its;
+
+// duration counts the number of times the timer controlling
+// note duration has been triggered. When it reaches 'length',
+// it moves to the next note or quits music.
 unsigned char duration;
 
-unsigned char note_num = 0;
-unsigned char num_notes = 32;//23; //24 for main_buzzer
-
-
-// note_ptr points to the array containing the number n that corresponds to
-// 111*n = number of machine cycles per oscillation for a given note
-char idata *note_ptr;
-
-// duration_ptr points to the array containing the number n that corresponds to
-// (n / 32)th note when using a given tempo
-char idata *duration_ptr;
-
+// when using half-time mode, mod increases the amount of
+// time necessary for duration to be incremented
 char mod;
+
+// rest_played is a flag that indicates whether or not
+// the mandatory short pause between notes has been completed
 char rest_played;
 
+// note_num counts the number of notes that have been played
+// and is used to find frequency and duration of the current
+// note in arrays.
+unsigned char note_num = 0;
+
+// num_notes is the length of the notes/duration arrays storing
+// musical information
+unsigned char num_notes = 32;
+
+
+// note_ptr points to the array containing the number n 
+// that corresponds to 111*n = number of machine cycles 
+// per oscillation for a given note
+char idata * note_ptr;
+
+// duration_ptr points to the array containing the 
+// number n that corresponds to (n / 32)th note 
+// when playing at a given tempo
+char idata * duration_ptr;
+
+// introduction_flag is 1 both enables the music functions
+// to be utilized and implies that they are being used
+// as introduction_flag is automatically set to 0 at the end
+// of use of music functions
 bit introduction_flag = 1;
+
+// nbc_flag is 1 enables the use of the NBC chimes for music
+// it is automatically set to 1 after the initial song is played
+// i.e. Maxine Nightingale's Gotta Get Right Back.
 bit nbc_flag = 0;
-
-
-
 
 
 
@@ -167,18 +237,12 @@ bit CheckWin();
 //button pressed
 // 0 is returned if no button is pressed
 
-//Location grid layout
-
-//------Top------//
-// 1  |  2  |  3 //
-// 4  |  5  |  6 //
-// 7  |  8  |  9 //
-//-----Bottom----//
 
 
 // -----------------------------------------------------------------------------
 // Interrupt Service Routines (ISRs)
 // -----------------------------------------------------------------------------
+
 
 // The Timer1 ISR is responsible for providing the duration
 // of the note being played
@@ -489,7 +553,7 @@ void main ( )
   P0M1 = 0x00;
   gameStatus[9] = 0; //null terminating char array
   //introduction_flag = 1;
-  note_ptr =     nbc_notes;//song_main_buzzer1;
+  note_ptr =     nbc_notes;
   duration_ptr = nbc_durations;
   num_notes = 2;
   //play_sound_byte();
@@ -508,16 +572,17 @@ void main ( )
   while(1)
   {
 
-  ////////////////////////////////////////
-  //Ray code for button (mode selection)//
-  ////////////////////////////////////////
+    // if the top-left button is pressed before
+    // a game starts, then the player is activating
+    // human vs. computer mode, otherwise, it is
+    // human vs. human mode
 
-    if(!bTopLeft)
+    if ( !bTopLeft )
     {
         AI_flag = 1;
     }
 
-    while(bTopLeft==0);   
+    while ( bTopLeft == 0 );   
     
     StartGame();
 
@@ -529,7 +594,7 @@ void main ( )
       //Check for input
     do
     {
-        if (AI_flag && current_player == 'O')
+        if ( AI_flag && current_player == 'O' )
         {
           input = ai_input();
         }
@@ -593,7 +658,8 @@ void StartGame(){
   char i;
   gameEnd = 0;
   
-  for(i = 0; i < 9; i++){
+  for(i = 0; i < 9; i++)
+  {
     gameStatus[i] = ' ';
   }
 
@@ -621,7 +687,8 @@ void StartGame(){
   return;
 }
 
-char PollButtons(){
+char PollButtons ( )
+{
   //Loop through and check each button
   if(!bTopLeft)
     return 1;
@@ -645,7 +712,8 @@ char PollButtons(){
   return 0;
 }
 
-bit CheckWin(){
+bit CheckWin ( )
+{
   //Check winning by rows
   int i = 0;
   for(i = 0; i < 3; i++)
