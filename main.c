@@ -40,7 +40,6 @@ sbit lBotRight   = P2^6;
 // p2_pulse for player 'O'
 sbit p1_pulse    = P1^2;
 sbit p2_pulse    = P1^3;
-
 // Refers to the piezo buzzer built-in to the simon
 // board and its corresponding port pin
 sbit SPKR        = P1^7;
@@ -207,12 +206,51 @@ bit nbc_flag = 0;
 // Function Prototypes
 // -----------------------------------------------------------------------------
 
+// ------------------------------------
+// restart_timer1
+// Desc: Resets values for 16-bit timer in music mode
+// Post: Timer is turned on and has 
+// ------------------------------------
 void restart_timer1 ( );
+
+// ------------------------------------
+// restart_timer1
+// Desc:
+// Pre:
+// Post:
+// ------------------------------------
 void SerialDisplay(char *);
-//Handles 1-time initialization code
+
+// ------------------------------------
+// restart_timer1
+// Desc:
+// Pre:
+// Post:
+// ------------------------------------
 void StartGame();
+
+// ------------------------------------
+// restart_timer1
+// Desc:
+// Pre:
+// Post:
+// ------------------------------------
 char PollButtons();
+
+// ------------------------------------
+// restart_timer1
+// Desc:
+// Pre:
+// Post:
+// ------------------------------------
 void play_sound_byte();
+
+// ------------------------------------
+// restart_timer1
+// Desc:
+// Pre:
+// Post:
+// ------------------------------------
 bit CheckWin();
 
 
@@ -674,6 +712,8 @@ void main ( )
   P1M1 = 0x00;
   P0M1 = 0x00;
   
+  p1_pulse = 0;
+  p2_pulse = 0;
 
   gameStatus[9] = 0; //null terminating char array
   
@@ -742,7 +782,6 @@ void main ( )
       //Victory
         gameEnd = 1;
         //This is for Jonathan's individual part.
-
         if (current_player == 'X')
         {
             p1_pulse = 1;
