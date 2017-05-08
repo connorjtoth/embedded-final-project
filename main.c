@@ -150,7 +150,7 @@ char col;
 // when AI_flag is 1, then a computer plays 'O's and
 // human plays 'X's. Otherwise, humans control both 'O's
 // and 'X's
-bit AI_flag = 1;
+bit AI_flag = 0;
 
 // note_its counts the number of times the timer controlling
 // frequency oscillation for notes has been triggered. When it 
@@ -287,7 +287,7 @@ void timer1_isr ( ) interrupt TIMER_1
     // stop playing the current note
     TR0 = 0;
     TF0 = 0;
-  note_its = 0;
+    note_its = 0;
     SPKR = 0;
 
     // make sure we have rested adequately
@@ -546,111 +546,6 @@ char ai_input ( )
 }
 
 
-void main ( )
-{ 
-  P2M1 = 0x00;
-  P1M1 = 0x00;
-  P0M1 = 0x00;
-  gameStatus[9] = 0; //null terminating char array
-  //introduction_flag = 1;
-  note_ptr =     nbc_notes;
-  duration_ptr = nbc_durations;
-  num_notes = 2;
-  //play_sound_byte();
-  introduction_flag = 0;
-  
-  //char input = 0; 
-  EA = 1;  //Enalbes interrupts
-
-  //Setup I/O ports
-  //TODO - Using bidirectional for now, does serial need something else?
-  uart_init(); //Initializes serial transmission
-  SerialDisplay(welcome_msg);  //Just for testings
-
-  
-  //Loop forever until power off
-  while(1)
-  {
-
-    // if the top-left button is pressed before
-    // a game starts, then the player is activating
-    // human vs. computer mode, otherwise, it is
-    // human vs. human mode
-
-    if ( !bTopLeft )
-    {
-        AI_flag = 1;
-    }
-
-    while ( bTopLeft == 0 );   
-    
-    StartGame();
-
-
-  //Game loop - run until victory
-  while(!gameEnd)
-    {
-
-      //Check for input
-    do
-    {
-        if ( AI_flag && current_player == 'O' )
-        {
-          input = ai_input();
-        }
-        else
-        {
-          input = PollButtons();
-        }
-    }
-      while(input == 0 || gameStatus[input - 1] != ' ');
-      
-      //Record new game input
-      gameStatus[input - 1] = current_player;
-
-      printGameStatus();
-
-      //Check for win condition
-      if(CheckWin())
-    {
-      //Victory
-        gameEnd = 1;
-        //This is for Jonathan's individual part.
-
-        if (current_player == 'X')  
-        {
-            p1_pulse = 1;
-            shortDelay();
-            p1_pulse = 0;
-        }
-        else
-        {  
-            p2_pulse = 1;
-            shortDelay();
-            p2_pulse = 0;
-        }
-          
-      }
-
-      // switches players
-    if (current_player == 'X')
-      {
-        current_player = 'O';
-      }
-      else
-      {
-        current_player = 'X';
-      }
-    //Wait for buttons to release
-    while(PollButtons() != 0);
-    }
-    // Game is now over!! Play NBC
-    introduction_flag = 1;
-    play_sound_byte();
-    
-  }
-}
-
 
 
 
@@ -764,3 +659,121 @@ void SerialDisplay(char s_msg[])
   for(iterator = 0; iterator < 10000; iterator++);
   return;
 }
+
+
+
+
+
+// -----------------------------------------------------------------------------
+// Main function body
+// -----------------------------------------------------------------------------
+
+void main ( )
+{ 
+  P2M1 = 0x00;
+  P1M1 = 0x00;
+  P0M1 = 0x00;
+  
+
+  gameStatus[9] = 0; //null terminating char array
+  
+  introduction_flag = 1;
+  note_ptr =     maxine_buzzer1;
+  duration_ptr = 0;
+  num_notes = 32;
+  
+  play_sound_byte();
+  
+  uart_init(); //Initializes serial transmission
+  SerialDisplay(welcome_msg);  //Just for testings
+  
+  //char input = 0; 
+  EA = 1;  //Enalbes interrupts
+
+  //Setup I/O ports
+  //TODO - Using bidirectional for now, does serial need something else?
+
+  
+  //Loop forever until power off
+  while(1)
+  {
+
+    // if the top-left button is pressed before
+    // a game starts, then the player is activating
+    // human vs. computer mode, otherwise, it is
+    // human vs. human mode
+    AI_flag = 0;
+    if ( !bTopLeft )
+    {
+        AI_flag = 1;
+    }
+
+    while ( bTopLeft == 0 );   
+    
+    StartGame();
+
+
+  //Game loop - run until victory
+  while(!gameEnd)
+    {
+
+      //Check for input
+    do
+    {
+        if ( AI_flag && current_player == 'O' )
+        {
+          input = ai_input();
+        }
+        else
+        {
+          input = PollButtons();
+        }
+    }
+      while(input == 0 || gameStatus[input - 1] != ' ');
+      
+      //Record new game input
+      gameStatus[input - 1] = current_player;
+
+      printGameStatus();
+
+      //Check for win condition
+      if(CheckWin())
+    {
+      //Victory
+        gameEnd = 1;
+        //This is for Jonathan's individual part.
+
+        if (current_player == 'X')
+        {
+            p1_pulse = 1;
+            shortDelay();
+            p1_pulse = 0;
+        }
+        else
+        {  
+            p2_pulse = 1;
+            shortDelay();
+            p2_pulse = 0;
+        }
+          
+      }
+
+      // switches players
+    if (current_player == 'X')
+      {
+        current_player = 'O';
+      }
+      else
+      {
+        current_player = 'X';
+      }
+    //Wait for buttons to release
+    while(PollButtons() != 0);
+    }
+    // Game is now over!! Play NBC
+    introduction_flag = 1;
+    play_sound_byte();
+    
+  }
+}
+
