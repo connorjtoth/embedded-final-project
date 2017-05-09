@@ -649,6 +649,7 @@ bit CheckWin ( )
 {
   //Check winning by rows
   int i = 0;
+  bit tie = 1;
   for(i = 0; i < 3; i++)
   {
     if(gameStatus[3 * i] == gameStatus[(3*i) + 1] &&
@@ -680,6 +681,19 @@ bit CheckWin ( )
    gameStatus[2] != ' ')
 
    return 1;
+
+  //Check for tie
+  for(i = 0; i < 9; i++)
+  {
+    if(gameStatus[i] == ' ')
+	{
+      tie = 0;
+	}
+  }
+  if(tie == 1)
+  {
+    return 1;
+  }
 
 
    return 0;
